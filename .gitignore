@@ -1,0 +1,62 @@
+# macOS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python environments and local configuration
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Python caches, builds, and test reports
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+/build/
+/dist/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Downloaded and processed COCO data
+/data/
+*.part
+
+# Large/generated ML artifacts
+/artifacts/checkpoints/
+/artifacts/models/
+/artifacts/logs/
+/artifacts/figures/
+/artifacts/reports/*
+!/artifacts/reports/training_metadata.json
+!/artifacts/reports/test_metrics.json
+!/artifacts/reports/export_info.json
+!/artifacts/reports/model_profile_summary.json
+
+# ESP-IDF generated files
+/firmware/esp32_cam_vww/build/
+/firmware/esp32_cam_vww/dist/
+/firmware/esp32_cam_vww/managed_components/
+/firmware/esp32_cam_vww/sdkconfig
+/firmware/esp32_cam_vww/sdkconfig.old
+/firmware/esp32_cam_vww/include/model_data.h
+compile_commands.json
+*.elf
+*.map
+
+# Temporary files
+*.tmp
+*.bak
+*~

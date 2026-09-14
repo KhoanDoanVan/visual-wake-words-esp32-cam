@@ -1,0 +1,7 @@
+{
+  "seed": 42,
+  "tensorflow": "2.20.0",
+  "epochs_completed": 35,
+  "best_val_pr_auc": 0.7843489646911621,
+  "parameters": 111793
+}

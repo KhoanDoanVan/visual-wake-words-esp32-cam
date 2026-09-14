@@ -1,0 +1,62 @@
+project:
+  name: visual-wake-words-esp32-cam
+  seed: 42
+
+paths:
+  raw: data/raw/coco2017
+  interim: data/interim
+  processed: data/processed
+  artifacts: artifacts
+
+data:
+  dataset: MS COCO 2017
+  # TLS-safe path-style endpoint for COCO's official public S3 bucket.
+  annotation_url: https://s3.amazonaws.com/images.cocodataset.org/annotations/annotations_trainval2017.zip
+  target_category: person
+  # Canonical VWW paper threshold: 0.5% of total image area.
+  min_person_area_fraction: 0.005
+  validation_fraction: 0.15
+  # Set any value to null to use every available image in that derived split.
+  # Defaults keep the first experiment practical while still using real COCO images.
+  max_samples:
+    train: 12000
+    val: 2000
+    test: 2000
+  balance_training_classes: true
+  download_workers: 12
+  download_timeout_seconds: 45
+
+preprocessing:
+  image_size: [96, 96]
+  channels: 3
+  resize_method: bilinear
+  batch_size: 64
+  shuffle_buffer: 4096
+  cache: false
+
+model:
+  architecture: tiny_mobilenet_v1
+  width_multiplier: 0.25
+  dropout: 0.1
+  l2: 0.00001
+
+training:
+  epochs: 35
+  learning_rate: 0.001
+  label_smoothing: 0.05
+  early_stopping_patience: 7
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+
+export:
+  representative_samples: 500
+  model_filename: vww_mobilenetv1_96_int8.tflite
+  header_filename: model_data.h
+  c_array_name: g_vww_model_data
+  max_model_bytes: 700000
