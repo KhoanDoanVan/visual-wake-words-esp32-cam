@@ -1,0 +1,176 @@
+{
+  "architecture_basis": "VWW paper MobileNetV1 depthwise-separable chain",
+  "initialization": "/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/artifacts/checkpoints/best.keras",
+  "initial_validation_pr_auc": 0.7654026988697777,
+  "trained_validation_pr_auc": 0.7831409453907229,
+  "chosen_checkpoint": "/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/artifacts/fast_80/checkpoints/best.keras",
+  "epochs_completed": 8,
+  "training_seconds": 233.68764366704272,
+  "best_val_pr_auc": 0.7829816341400146,
+  "selected_threshold": 0.27,
+  "baseline_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.34,
+    "accuracy": 0.691,
+    "precision": 0.644852354349561,
+    "recall": 0.8236493374108053,
+    "f1": 0.7233661593554163,
+    "roc_auc": 0.8009401393903199,
+    "pr_auc": 0.8034297147139705,
+    "specificity": 0.563297350343474,
+    "confusion_matrix": [
+      [
+        574,
+        445
+      ],
+      [
+        173,
+        808
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.6265,
+    "expected_calibration_error_10_bins": 0.023007355242967605
+  },
+  "validation_metrics": {
+    "samples": 2000,
+    "threshold": 0.27,
+    "accuracy": 0.6485,
+    "precision": 0.5967523680649527,
+    "recall": 0.8918099089989889,
+    "f1": 0.7150385083096878,
+    "roc_auc": 0.775060782354665,
+    "pr_auc": 0.7831409453907229,
+    "specificity": 0.410484668644906,
+    "confusion_matrix": [
+      [
+        415,
+        596
+      ],
+      [
+        107,
+        882
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.739,
+    "expected_calibration_error_10_bins": 0.033354489378631114
+  },
+  "float_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.27,
+    "accuracy": 0.658,
+    "precision": 0.6016427104722792,
+    "recall": 0.8960244648318043,
+    "f1": 0.7199017199017199,
+    "roc_auc": 0.788880785963733,
+    "pr_auc": 0.7894261285224151,
+    "specificity": 0.42885181550539747,
+    "confusion_matrix": [
+      [
+        437,
+        582
+      ],
+      [
+        102,
+        879
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.7305,
+    "expected_calibration_error_10_bins": 0.01199565732479096
+  },
+  "int8_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.27,
+    "accuracy": 0.6575,
+    "precision": 0.6009549795361528,
+    "recall": 0.8980632008154944,
+    "f1": 0.720065386187168,
+    "roc_auc": 0.7881690290194759,
+    "pr_auc": 0.787266057739353,
+    "specificity": 0.4259077526987242,
+    "confusion_matrix": [
+      [
+        434,
+        585
+      ],
+      [
+        100,
+        881
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.733,
+    "expected_calibration_error_10_bins": 0.018021484374999997,
+    "mean_absolute_probability_delta_vs_float": 0.008167900074273348
+  },
+  "profile": {
+    "model_name": "tiny_mobilenet_v1_0.25",
+    "layers": 70,
+    "parameters": 111793,
+    "trainable_parameters": 108369,
+    "non_trainable_parameters": 3424,
+    "float32_weight_bytes": 447172,
+    "global_weight_sparsity": 0.0,
+    "global_weight_near_zero_fraction": 8.945103897381768e-06,
+    "global_kernel_sparsity": 0.0,
+    "global_kernel_near_zero_fraction": 9.528891599329166e-06,
+    "estimated_macs_batch1": 3993536,
+    "peak_live_activation_float32_bytes_batch1": 204800,
+    "peak_live_activation_int8_bytes_batch1_hypothetical": 51200,
+    "peak_live_activation_layer": "block1_pw_bn",
+    "float32_inference_structural_bytes": 651972,
+    "training_batch_size_for_estimate": 64,
+    "training_structural_bytes_estimate": 133557136,
+    "near_zero_threshold": 1e-06,
+    "memory_estimate_scope": "Static graph estimate, not an ESP32 SRAM or tensor-arena measurement. Weights and activations may occupy different memory regions; fusion, in-place reuse, kernel workspace, allocator fragmentation, and runtime overhead are not modeled.",
+    "checkpoint": "/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/artifacts/fast_80/checkpoints/best.keras",
+    "checkpoint_bytes": 1617357,
+    "tflite_bytes": 167976
+  },
+  "export": {
+    "size_bytes": 167976,
+    "input": {
+      "name": "serving_default_image:0",
+      "shape": [
+        1,
+        80,
+        80,
+        3
+      ],
+      "dtype": "int8",
+      "scale": 1.0,
+      "zero_point": -128
+    },
+    "output": {
+      "name": "StatefulPartitionedCall_1:0",
+      "shape": [
+        1,
+        1
+      ],
+      "dtype": "int8",
+      "scale": 0.00390625,
+      "zero_point": -128
+    },
+    "operators": [
+      "ADD",
+      "CONV_2D",
+      "DEPTHWISE_CONV_2D",
+      "FULLY_CONNECTED",
+      "LOGISTIC",
+      "MEAN",
+      "MUL"
+    ]
+  },
+  "deployment_gates": {
+    "full_int8_io": true,
+    "tflm_operator_set": true,
+    "mac_budget": true,
+    "model_size_budget": true,
+    "minimum_test_recall": true,
+    "minimum_test_f1": true,
+    "baseline_f1_retained": true
+  },
+  "ready_for_firmware": true
+}

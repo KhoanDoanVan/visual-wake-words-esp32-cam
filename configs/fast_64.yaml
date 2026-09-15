@@ -1,0 +1,57 @@
+project:
+  name: visual-wake-words-esp32-cam-fast-64
+  seed: 42
+
+paths:
+  raw: data/raw/coco2017
+  interim: data/interim
+  processed: data/processed
+  artifacts: artifacts/fast_64
+
+data:
+  dataset: MS COCO 2017
+  target_category: person
+  min_person_area_fraction: 0.005
+
+preprocessing:
+  image_size: [64, 64]
+  channels: 3
+  resize_method: bilinear
+  batch_size: 64
+  cache: false
+
+model:
+  architecture: compressed_mobilenet_v1_vww
+  width_multiplier: 0.25
+  dropout: 0.1
+  l2: 0.00001
+  camera_augmentation: true
+  initialization_checkpoint: artifacts/checkpoints/best.keras
+
+training:
+  epochs: 24
+  learning_rate: 0.0003
+  label_smoothing: 0.03
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+
+export:
+  representative_samples: 500
+  model_filename: vww_mobilenetv1_64_int8.tflite
+  header_filename: model_data.h
+  c_array_name: g_vww_model_data
+  max_model_bytes: 250000
+
+deployment_gate:
+  max_macs: 3000000
+  max_model_bytes: 250000
+  minimum_test_recall: 0.78
+  minimum_test_f1: 0.68
+  maximum_f1_drop_from_baseline: 0.04

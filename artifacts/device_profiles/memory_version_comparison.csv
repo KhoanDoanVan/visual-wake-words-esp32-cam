@@ -1,0 +1,3 @@
+variant,input_tensor_bytes,tflite_live_activation_peak_bytes,arena_used_bytes,arena_reserved_bytes,arena_headroom_bytes,arena_utilization,arena_bytes_beyond_live_tensors,internal_free_ready_bytes,internal_largest_ready_bytes,psram_free_ready_bytes,psram_consumed_to_ready_bytes,psram_with_stream_client_bytes,model_constant_bytes,model_bytes
+baseline_96,27648,55296,91596,358400,266804,0.25556919642857145,36300,66867,61440,3378736,813008,997328,111806,167976
+fast_80,19200,38400,69068,358400,289332,0.19271205357142857,30668,66867,61440,3387184,804560,988880,111806,167976

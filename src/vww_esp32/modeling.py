@@ -4,9 +4,23 @@ from pathlib import Path
 
 
 def build_tiny_mobilenet_v1(
-    input_shape=(96, 96, 3), alpha: float = 0.25, dropout: float = 0.1, l2: float = 1e-5
+    input_shape=(96, 96, 3),
+    alpha: float = 0.25,
+    dropout: float = 0.1,
+    l2: float = 1e-5,
+    camera_augmentation: bool = False,
+    camera_augmentation_strength: float = 1.0,
+    augmentation_seed: int | None = None,
 ):
-    """MobileNetV1-like binary classifier limited to TFLite Micro friendly operators."""
+    """Compressed MobileNetV1 binary classifier using TFLite Micro friendly operators.
+
+    The convolutional trunk is a branch-free sequence of depthwise 3x3 and
+    pointwise 1x1 convolutions, following the Visual Wake Words paper.  It
+    intentionally removes three late blocks from canonical MobileNetV1 because
+    those blocks add latency on the original ESP32 without reducing the large
+    early activation maps.  Optional caamera augmentation is active only during
+    training and therefore adds no operators to the exported inference graph.
+    """
     import tensorflow as tf
 
     regularizer = tf.keras.regularizers.l2(l2)
@@ -51,8 +65,44 @@ def build_tiny_mobilenet_v1(
 
     inputs = tf.keras.Input(shape=input_shape, name="image", dtype=tf.float32)
     x = tf.keras.layers.Rescaling(1.0 / 127.5, offset=-1.0, name="normalize")(inputs)
-    x = tf.keras.layers.RandomFlip("horizontal", name="augment_flip")(x)
-    x = tf.keras.layers.RandomTranslation(0.05, 0.05, fill_mode="reflect", name="augment_shift")(x)
+    x = tf.keras.layers.RandomFlip(
+        "horizontal", seed=augmentation_seed, name="augment_flip"
+    )(x)
+    x = tf.keras.layers.RandomTranslation(
+        0.05,
+        0.05,
+        fill_mode="reflect",
+        seed=None if augmentation_seed is None else augmentation_seed + 1,
+        name="augment_shift",
+    )(x)
+    if camera_augmentation:
+        strength = max(0.0, float(camera_augmentation_strength))
+        # The OV3660 stream is often desaturated, low-contrast, noisy, and
+        # unevenly exposed.  Train across those conditions while keeping the
+        # validation/test images untouched.
+        x = tf.keras.layers.RandomBrightness(
+            0.25 * strength,
+            value_range=(-1.0, 1.0),
+            seed=None if augmentation_seed is None else augmentation_seed + 2,
+            name="augment_brightness",
+        )(x)
+        x = tf.keras.layers.RandomContrast(
+            0.35 * strength,
+            value_range=(-1.0, 1.0),
+            seed=None if augmentation_seed is None else augmentation_seed + 3,
+            name="augment_contrast",
+        )(x)
+        x = tf.keras.layers.RandomSaturation(
+            min(1.0, 0.9 * strength),
+            value_range=(-1.0, 1.0),
+            seed=None if augmentation_seed is None else augmentation_seed + 4,
+            name="augment_saturation",
+        )(x)
+        x = tf.keras.layers.GaussianNoise(
+            0.04 * strength,
+            seed=None if augmentation_seed is None else augmentation_seed + 5,
+            name="augment_sensor_noise",
+        )(x)
     x = conv_bn_relu(x, 32, 2, "stem")
     for index, (filters, stride) in enumerate(
         [(64, 1), (128, 2), (128, 1), (256, 2), (256, 1), (512, 2)]

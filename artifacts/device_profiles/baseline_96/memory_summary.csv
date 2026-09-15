@@ -1,0 +1,15 @@
+item,bytes,region,basis
+Internal heap free at ready,66867,Internal SRAM,measured
+Largest internal block at ready,61440,Internal SRAM,measured
+Mapped PSRAM free at ready,3378736,PSRAM,measured
+PSRAM consumed from pre-allocation to ready,813008,PSRAM,measured delta
+Tensor arena reservation,358400,PSRAM,configured allocation
+Tensor arena used,91596,PSRAM arena,measured by TFLM
+TFLite live activation peak,55296,PSRAM arena,graph-liveness estimate
+Arena bytes beyond live tensors,36300,PSRAM arena,derived
+RGB888 preprocessing scratch,57600,PSRAM,configured allocation
+Camera framebuffer,184320,PSRAM,driver-reported allocation
+Dashboard JPEG buffer,184320,PSRAM,configured allocation
+Additional connected stream-client buffer,184320,PSRAM,conditional allocation
+Model constants referenced by operators,111806,Flash,FlatBuffer inventory
+Complete TFLite FlatBuffer,167976,Flash,file size

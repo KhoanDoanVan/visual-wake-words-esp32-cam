@@ -18,9 +18,12 @@ env/
 __pycache__/
 *.py[cod]
 *.egg-info/
+.cache/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.tox/
+.nox/
 .coverage
 coverage.xml
 htmlcov/
@@ -29,6 +32,12 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Local profiling, TensorBoard, and process output
+*.log
+events.out.tfevents.*
+*.prof
+*.trace
 
 # Downloaded and processed COCO data
 /data/
@@ -45,6 +54,22 @@ htmlcov/
 !/artifacts/reports/export_info.json
 !/artifacts/reports/model_profile_summary.json
 
+# Nested experiment training state. Keep small reports and deployable .tflite files.
+/artifacts/**/checkpoints/
+/artifacts/**/logs/
+/artifacts/**/*.keras
+/artifacts/**/*.h5
+/artifacts/**/*.ckpt
+/artifacts/**/*.ckpt.*
+/artifacts/**/saved_model/
+
+# Rejected exploratory candidate; its reproducible configuration remains in configs/.
+/artifacts/fast_64/
+
+# Device-profile source summaries stay versioned; raw firmware and duplicate plots do not.
+/artifacts/device_profiles/*/firmware/
+/artifacts/device_profiles/*/*.png
+
 # ESP-IDF generated files
 /firmware/esp32_cam_vww/build/
 /firmware/esp32_cam_vww/dist/
@@ -55,8 +80,23 @@ htmlcov/
 compile_commands.json
 *.elf
 *.map
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Local camera captures and screen recordings
+/captures/
+/recordings/
+/artifacts/**/captures/
+*.mov
+*.mp4
+*.avi
 
 # Temporary files
 *.tmp
 *.bak
+*.orig
 *~
+
+# Test
+/tests

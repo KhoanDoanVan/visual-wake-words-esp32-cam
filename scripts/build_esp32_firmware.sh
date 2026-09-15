@@ -28,7 +28,7 @@ trap cleanup EXIT
 
 rsync -a \
   --exclude build \
-  --exclude dist \
+  --exclude '/dist/' \
   --exclude managed_components \
   --exclude sdkconfig \
   "$SOURCE_DIR/" "$STAGE_DIR/"
