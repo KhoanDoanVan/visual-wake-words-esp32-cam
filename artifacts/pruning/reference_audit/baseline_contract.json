@@ -1,0 +1,36 @@
+{
+  "experiment": "pruning_reference_audit",
+  "seed": 42,
+  "input_shape": [
+    1,
+    80,
+    80,
+    3
+  ],
+  "batch_size": 1,
+  "float_parameters": 111793,
+  "dense_macs_batch1": 3993536,
+  "int8_tflite_bytes": 167976,
+  "tflite_live_activation_peak_bytes": 38400,
+  "tflm_arena_used_bytes": 69068,
+  "tflm_arena_reserved_bytes": 358400,
+  "device_invoke_mean_us": 455546.4,
+  "device_invoke_min_us": 453364,
+  "device_invoke_max_us": 459697,
+  "device_profile_samples": 20,
+  "fused_tflite_operators": 26,
+  "hashes": {
+    "configs/fast_80.yaml": "96481848d8adcc955801e37537dda34cfdbb3c6c3a3f58004547e8d0da21f96c",
+    "artifacts/fast_80/models/final.keras": "1fbfb79a810f4a4efa17d3a2760fd059e0338e4d5d5121ba7998259db81a4acf",
+    "artifacts/fast_80/models/vww_mobilenetv1_80_int8.tflite": "70eb89724ae7f5f84097922e481ba8c61946ef7219fdbeddabc81a612ae7691d",
+    "data/processed/manifest.csv": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "artifacts/device_profiles/fast_80/device_profile_summary.json": "9dcc37c9674c0050a608c92b6be290eb1afb0ae0de6385edc321109ee1037d34",
+    "artifacts/device_profiles/fast_80/operator_profile.csv": "0e156d3a0c1933d2d115418b5911d0e5d6a8f1edaf0f080298de951d8cee4b86"
+  },
+  "measurement_scope": {
+    "macs": "static dense estimate",
+    "live_activations": "FlatBuffer tensor-liveness estimate",
+    "arena": "MicroAllocator value measured on ESP32-CAM",
+    "latency": "batch-one Invoke measured on ESP32-CAM"
+  }
+}

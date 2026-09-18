@@ -1,0 +1,59 @@
+{
+  "strategy": "paper_iterative",
+  "tag": "s75",
+  "target_sparsity": 0.75,
+  "actual_sparsity": 0.75,
+  "immediate_validation": {
+    "samples": 2000,
+    "threshold": 0.01,
+    "accuracy": 0.4945,
+    "precision": 0.4945,
+    "recall": 1.0,
+    "f1": 0.6617597858815657,
+    "roc_auc": 0.5,
+    "pr_auc": 0.4945,
+    "specificity": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        1011
+      ],
+      [
+        0,
+        989
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 1.0,
+    "expected_calibration_error_10_bins": 0.004074823141098027
+  },
+  "recovered_validation": {
+    "samples": 2000,
+    "threshold": 0.01,
+    "accuracy": 0.4945,
+    "precision": 0.4945,
+    "recall": 1.0,
+    "f1": 0.6617597858815657,
+    "roc_auc": 0.5,
+    "pr_auc": 0.4945,
+    "specificity": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        1011
+      ],
+      [
+        0,
+        989
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 1.0,
+    "expected_calibration_error_10_bins": 0.004071544885635381
+  },
+  "prune_retrain_rounds": 5,
+  "final_recovery_epochs": 3,
+  "recovery_seconds": 181.4303336669982,
+  "model_path": "artifacts/pruning/unstructured_magnitude/models/iterative_s75_recovered.keras",
+  "mask_path": "artifacts/pruning/unstructured_magnitude/models/iterative_s75_masks.npz"
+}

@@ -2,12 +2,11 @@
 
 #include "driver/gpio.h"
 
-// Threshold calibrated after the real-camera transform in app_main.cc. On the
-// supplied device recording, non-transition person frames scored 0.484-0.602
-// while non-person frames scored at most 0.434. Keep the transform and this
-// threshold together; neither is compatible with the old raw-camera 0.27
-// threshold.
-constexpr float kPersonThreshold = 0.44f;
+// Validation-calibrated operating threshold for the currently deployed
+// paper-inspired iterative-s50 INT8 model. Keep the real-camera transform in
+// app_main.cc unchanged. A later labelled OV3660 capture can refine this value
+// for the camera domain without retraining or changing the model artifact.
+constexpr float kPersonThreshold = 0.47f;
 
 // Use a short 2-of-3 temporal vote. At the measured ~1.7 fps this confirms or
 // clears a state in roughly 0.6-1.2 seconds while still rejecting an isolated
@@ -33,8 +32,11 @@ constexpr int kProfileWarmupInvocations = 2;
 constexpr int kProfileMeasuredInvocations = 20;
 
 // GPIO33 drives the small red LED (active-low). GPIO4 drives the large white
-// camera flash; keep it low at all times and show person detection in blue on
-// the web dashboard instead.
+// camera flash (active-high). Both follow the stabilized inference state: red
+// means non-person, while the white flash and blue dashboard mean person.
+// Keep the flash feature compiled but disable its output for workplace-safe
+// profiling. Set this flag back to true when illumination is wanted again.
 constexpr gpio_num_t kNonPersonLedGpio = GPIO_NUM_33;
 constexpr bool kNonPersonLedActiveLow = true;
 constexpr gpio_num_t kFlashLedGpio = GPIO_NUM_4;
+constexpr bool kFlashLedEnabled = false;

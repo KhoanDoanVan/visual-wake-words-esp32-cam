@@ -80,11 +80,11 @@ Espressif image inspection found a valid checksum and valid SHA validation hash 
 - The model binary and training dataset are unchanged. The deployment input now applies 50% chroma reduction around BT.601 luma followed by a gamma-1.2 256-byte LUT, with a matched score threshold of 0.44.
 - The temporal rule remains 2-of-3 without an initial full-window wait. While dormant, votes additionally require frame motion of at least 2.0 input levels. Once awake, the model alone maintains or releases the state.
 - In the final static-scene smoke test, raw scores remained high at 0.508–0.586, but measured motion was only 0.4–0.7 and `wake=0` throughout. This directly verifies static false-positive suppression on the connected board.
-- GPIO33 red was configured for non-person. GPIO4 was configured as an output and repeatedly forced low; the white flash is disabled. Person state is blue on the dashboard.
+- GPIO33 red is configured for non-person. GPIO4 is active-high and follows the stabilized person state; the white flash and blue dashboard state turn on together.
 
 ## Remaining validation gates
 
-- Exercise a person entering, remaining still, and leaving in several intended lighting conditions. Confirm blue/red dashboard transitions; the onboard red LED should turn off for person and the white flash must remain off.
+- Exercise a person entering, remaining still, and leaving in several intended lighting conditions. Confirm blue/red dashboard transitions; the onboard red LED should turn off and the white flash should turn on for the stabilized person state, then reverse after release.
 - Confirm that typical person entry produces motion above 2.0 on at least two of three frames. If it does not, lower only `kActivationMotionThreshold`; keep the 0.44 score threshold aligned with the camera transform.
 - Repeat the recording-style validation from additional viewpoints before treating the single-recording calibration ranges as production accuracy measurements.
 

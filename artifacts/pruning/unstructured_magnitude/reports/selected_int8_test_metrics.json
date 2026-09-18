@@ -1,0 +1,51 @@
+{
+  "baseline_int8": {
+    "samples": 2000,
+    "threshold": 0.335,
+    "accuracy": 0.6845,
+    "precision": 0.6333841463414634,
+    "recall": 0.8470948012232415,
+    "f1": 0.7248146532926297,
+    "roc_auc": 0.7881690290194759,
+    "pr_auc": 0.787266057739353,
+    "specificity": 0.5279685966633955,
+    "confusion_matrix": [
+      [
+        538,
+        481
+      ],
+      [
+        150,
+        831
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.656,
+    "expected_calibration_error_10_bins": 0.018021484374999997
+  },
+  "selected_int8": {
+    "samples": 2000,
+    "threshold": 0.47000000000000003,
+    "accuracy": 0.6835,
+    "precision": 0.634466769706337,
+    "recall": 0.836901121304791,
+    "f1": 0.7217582417582418,
+    "roc_auc": 0.7858541933638044,
+    "pr_auc": 0.7809979696503992,
+    "specificity": 0.535819430814524,
+    "confusion_matrix": [
+      [
+        546,
+        473
+      ],
+      [
+        160,
+        821
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.647,
+    "expected_calibration_error_10_bins": 0.11683398437499999,
+    "mean_absolute_probability_delta_vs_float": 0.003753279522061348
+  }
+}

@@ -231,9 +231,9 @@ def enrich_device_profile(
     return profile
 
 
-def _runtime_memory_from_serial(text: str) -> dict[str, int]:
-    """Extract board heap snapshots and camera allocation from a serial log."""
-    result: dict[str, int] = {}
+def _runtime_memory_from_serial(text: str) -> dict[str, int | float]:
+    """Extract memory, camera, bandwidth, and pipeline timings from a serial log."""
+    result: dict[str, int | float] = {}
     snapshot_pattern = re.compile(
         r"(?P<stage>before allocations|ready): internal_free=(?P<internal_free>\d+) "
         r"internal_largest=(?P<internal_largest>\d+) psram_free=(?P<psram_free>\d+) "
@@ -253,6 +253,35 @@ def _runtime_memory_from_serial(text: str) -> dict[str, int]:
         result["rgb888_scratch_bytes"] = (
             result["capture_width"] * result["capture_height"] * 3
         )
+    for label, key in (
+        ("internal SRAM", "internal_sram_memcpy_mib_s"),
+        ("mapped PSRAM", "mapped_psram_memcpy_mib_s"),
+    ):
+        match = re.search(rf"{label} memcpy: ([0-9.]+) MiB/s", text)
+        if match:
+            result[key] = float(match.group(1))
+    camera_benchmark = re.search(
+        r"Camera-only: ([0-9.]+) fps .*?JPEG mean=([0-9.]+)B .*?payload=([0-9.]+)kbit/s",
+        text,
+    )
+    if camera_benchmark:
+        result["camera_only_fps"] = float(camera_benchmark.group(1))
+        result["camera_jpeg_mean_bytes"] = float(camera_benchmark.group(2))
+        result["camera_payload_kbit_s"] = float(camera_benchmark.group(3))
+    timing_pattern = re.compile(
+        r"timing_ms\[capture=([0-9.]+) preprocess=([0-9.]+) infer=([0-9.]+) "
+        r"publish=([0-9.]+) active=([0-9.]+) period=([0-9.]+) fps=([0-9.]+)\]"
+    )
+    timing_rows = np.asarray(
+        [[float(value) for value in match] for match in timing_pattern.findall(text)],
+        dtype=np.float64,
+    )
+    if timing_rows.size:
+        names = ("capture", "preprocess", "infer", "publish", "active", "period", "fps")
+        for index, name in enumerate(names):
+            result[f"pipeline_{name}_median_ms" if name != "fps" else "pipeline_fps_median"] = float(
+                np.median(timing_rows[:, index])
+            )
     return result
 
 

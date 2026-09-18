@@ -1,0 +1,7 @@
+technique,representation,mathematical_nonzero_weights,physical_dense_weights,dense_executed_macs,output_activation_bytes,nonzero_ratio,physical_weight_ratio,dense_mac_ratio,activation_ratio
+Dense baseline,dense,16384,16384,409600,3200,1.0,1.0,1.0,1.0
+Unstructured 50% mask,masked dense,8192,16384,409600,3200,0.5,1.0,1.0,1.0
+2:4 mask,masked dense,8192,16384,409600,3200,0.5,1.0,1.0,1.0
+Kernel connections 50%,masked dense,8192,16384,409600,3200,0.5,1.0,1.0,1.0
+Physical output channels 50%,rebuilt dense,8192,8192,204800,1600,0.5,0.5,0.5,0.5
+Whole block removal,deleted dense op,0,0,0,0,0.0,0.0,0.0,0.0

@@ -531,7 +531,7 @@ bool InitializeInferenceIndicators() {
 
 void SetInferenceIndicator(bool person_detected) {
   SetLed(kNonPersonLedGpio, kNonPersonLedActiveLow, !person_detected);
-  SetLed(kFlashLedGpio, false, false);
+  SetLed(kFlashLedGpio, false, kFlashLedEnabled && person_detected);
 }
 }  // namespace
 
@@ -546,7 +546,8 @@ extern "C" void app_main(void) {
     ESP_LOGE(kTag, "Inference indicator GPIO initialization failed");
     return;
   }
-  ESP_LOGI(kTag, "Indicators: RED=non-person, flash forced OFF; webpage BLUE=person");
+  ESP_LOGI(kTag, "Indicators: RED=non-person; webpage BLUE=person; WHITE FLASH=%s",
+           kFlashLedEnabled ? "enabled" : "disabled (forced low)");
   LogMemory("before allocations");
   BenchmarkMemoryBandwidth();
 

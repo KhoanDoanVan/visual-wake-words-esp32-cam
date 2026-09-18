@@ -2,9 +2,9 @@
 
 Notebook-first pipeline for training a **person / no-person** Visual Wake Word model on real MS COCO 2017 images and exporting it as a full-INT8 TensorFlow Lite Micro model for an AI-Thinker ESP32-CAM.
 
-> The 80x80 optimized model has been trained, exported, compiled, flashed, and smoke-tested on the connected board.
+> Fast-80 is the frozen pre-pruning reference. It has been trained, exported, compiled, flashed, and smoke-tested on the connected board.
 
-## Current deployed result (80x80)
+## Frozen Fast-80 reference (80x80)
 
 | Item | Result |
 |---|---:|
@@ -30,7 +30,7 @@ Notebook-first pipeline for training a **person / no-person** Visual Wake Word m
 
 The float32 memory row is a graph-level baseline, not a measured TFLite Micro tensor-arena requirement.
 
-The ESP-IDF firmware also includes a device-hosted live camera and inference dashboard. Connect to its `VWW-Camera` Wi-Fi network and open `http://192.168.4.1`; person is blue, non-person is red, and low-light/camera faults are reported explicitly. The dashboard also shows raw score, temporal votes, frame motion, and whether dormant activation is blocked by a static scene. The bright GPIO4 flash is forced off. See [the firmware guide](firmware/esp32_cam_vww/README.md) and [build report](firmware/esp32_cam_vww/BUILD_REPORT.md) for details.
+The ESP-IDF firmware also includes a device-hosted live camera and inference dashboard. Connect to its `VWW-Camera` Wi-Fi network and open `http://192.168.4.1`; person is blue, non-person is red, and low-light/camera faults are reported explicitly. The dashboard also shows raw score, temporal votes, frame motion, and whether dormant activation is blocked by a static scene. GPIO4 drives the bright white flash only while the stabilized inference state is `person`. See [the firmware guide](firmware/esp32_cam_vww/README.md) and [build report](firmware/esp32_cam_vww/BUILD_REPORT.md) for details.
 
 The optimized network keeps the branch-free, depthwise-separable MobileNetV1 structure used for Visual Wake Words and reduces spatial resolution from 96 to 80. The deployed network and dataset remain unchanged; firmware now conditions the real OV3660 input with fixed-point chroma reduction and a 256-byte gamma LUT, then uses a motion-gated 2-of-3 activation rule. Run `python scripts/train_fast_vww.py --config configs/fast_80.yaml` only to reproduce the existing fine-tuning and INT8 export.
 
@@ -206,24 +206,57 @@ state, and unrounded value.
 | [Every-operator CSV](artifacts/device_profiles/operator_version_comparison.csv) | Unrounded latency, MAC, constants, activation, and live-memory differences |
 | [Baseline 96 layer report](artifacts/device_profiles/baseline_96/DEVICE_LAYER_PROFILE_REPORT.md) | Shapes, slowest operators, memory, and run protocol |
 | [Fast 80 layer report](artifacts/device_profiles/fast_80/DEVICE_LAYER_PROFILE_REPORT.md) | Shapes, slowest operators, memory, and run protocol |
-| [Manual pruning and quantization plan](MANUAL_PRUNING_AND_QUANTIZATION_PLAN.md) | Hardware-aware techniques, experiment sequence, and acceptance gates |
+| [Pruning techniques and experiment plan](optimization/PRUNING_TECHNIQUES_PLAN.md) | Paper-backed taxonomy, ESP32 suitability, experiment order, and acceptance gates |
 | `notebooks/10_device_layer_profiling.ipynb` | Reproduce and inspect one physical-device profile |
 | `notebooks/11_model_version_comparison.ipynb` | Rebuild the complete two-version comparison |
+| [`optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb`](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb) | Executed baseline freeze, pruning-unit inventory, dependency audit, and ESP32 granularity visualizations |
+| [`artifacts/pruning/reference_audit/`](artifacts/pruning/reference_audit/) | Machine-readable Notebook 12 tables, contract, manifest, and five generated figures |
+| [`optimization/pruning/13_unstructured_magnitude_pruning.ipynb`](optimization/pruning/13_unstructured_magnitude_pruning.ipynb) | Executed global magnitude-pruning sweep, masked recovery, INT8 export, quality gates, and efficiency analysis |
+| [Notebook 13 experiment report](artifacts/pruning/unstructured_magnitude/UNSTRUCTURED_MAGNITUDE_REPORT.md) | Selected-candidate metrics, resource interpretation, device command, and decision |
+| [`artifacts/pruning/unstructured_magnitude/`](artifacts/pruning/unstructured_magnitude/) | Reproducible metrics, masks, deployable TFLite models, manifest, and five comparison figures |
 
-### Decision before manual pruning and quantization work
+### Optimization restart
 
-Fast 80 is the reference deployment for the next phase. Both versions in this comparison are
-already full-INT8 post-training-quantized models, so the next useful experiment is manual
-**structured channel pruning**, followed by fine-tuning and a fresh full-INT8 export for every
-candidate. Unstructured weight zeroing alone will not make the current dense ESP-NN kernels
-faster or shrink their activation tensors.
+Fast-80 is the frozen pre-pruning reference. Previous QAT and pruning experiments have been
+removed so that granularity, criterion, pruning ratio, recovery schedule, and hardware support
+can be evaluated independently. The new paper-backed protocol is defined in the
+[pruning techniques and experiment plan](optimization/PRUNING_TECHNIQUES_PLAN.md). No sparse
+method will be called an ESP32 optimization until batch-one latency, tensor-arena use, model
+storage, and complete camera-pipeline FPS are measured on the physical board.
 
-The next candidate should preserve batch size one and the 80x80 input while targeting at most
-about **2.4-2.5M MACs**, **25 KiB fused-TFLite live activations**, and **50 KiB actual TFLM
-arena use** for an approximately 3 fps design. Each pruning step must be accepted only after
-offline accuracy, FlatBuffer size, arena use, every-operator latency, and physical-device
-end-to-end timing are measured again. No pruning or new quantization experiment is applied in
-the comparison above.
+### Notebook 13 result — unstructured magnitude pruning
+
+Notebook 13 applies one-shot global magnitude pruning to the frozen Fast-80 float model at
+25%, 50%, 75%, and 90% kernel sparsity. Every candidate receives the same two-epoch masked
+recovery schedule, is selected using validation data only, and is exported to full INT8. The
+50% candidate (`s50`) is the highest sparsity that satisfies recall >= 0.80 and an F1 drop no
+larger than 0.03. The 75% and 90% candidates fail because global ranking removes the tiny
+classifier head completely, causing an all-person prediction collapse.
+
+| Perspective | Fast-80 reference | Selected `s50` | Observed change |
+|---|---:|---:|---:|
+| Kernel sparsity | 0% | 50% | +50 percentage points |
+| Validation float F1 | 0.715 | 0.713 | -0.002 |
+| Selected INT8 test F1 | — | 0.706 | Reported after validation-only selection |
+| Selected INT8 test recall / PR-AUC | — | 0.823 / 0.781 | Held-out test result |
+| Raw TFLite bytes | 167,976 | 167,976 | **0%** |
+| Gzip diagnostic bytes | 125,325 | 92,403 | **-26.3%** |
+| Dense executed MACs | 3,993,536 | 3,993,536 | **0%** |
+| Theoretical nonzero MACs | 3,993,536 | 2,558,443 | -35.9% |
+| Fused live activation peak | 38,400 B | 38,400 B | **0%** |
+| Physical parameters / operators | 111,793 / 26 | 111,793 / 26 | **0% / 0%** |
+| ESP32 latency and arena | Measured reference | Pending candidate profile | No speed or RAM claim yet |
+
+![Notebook 13 quality versus sparsity](artifacts/pruning/unstructured_magnitude/figures/quality_vs_sparsity.png)
+
+![Notebook 13 efficiency dashboard](artifacts/pruning/unstructured_magnitude/figures/efficiency_dashboard.png)
+
+The experiment therefore succeeds as the negative hardware control: unstructured zeros make
+the model mathematically sparse and more compressible, but stock dense TFLite Micro/ESP-NN
+kernels retain the same tensor shapes and execute the same dense work. The candidate firmware
+build completed, but the connected `/dev/cu.J237` port returned no serial data during flashing,
+so the report intentionally leaves physical latency, tensor-arena use, and pipeline FPS pending.
+Notebook 14 will instead rebuild physically narrower dense channels that ESP-NN can exploit.
 
 ## Notebook pipeline
 
@@ -241,6 +274,8 @@ the comparison above.
 | `09_report_and_deployment.ipynb` | Model card and deployment gates |
 | `10_device_layer_profiling.ipynb` | Analyze every fused operator using real ESP32-CAM timings |
 | `11_model_version_comparison.ipynb` | Compare the 96×96 and 80×80 models across device, compute, memory, and accuracy metrics |
+| `optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb` | Freeze Fast-80 and audit legal pruning units, dependencies, and hardware-realizable granularity |
+| `optimization/pruning/13_unstructured_magnitude_pruning.ipynb` | Sweep global scalar magnitude pruning, recover masks, export INT8, and distinguish sparse theory from dense ESP-NN execution |
 
 ## Run the pipeline
 

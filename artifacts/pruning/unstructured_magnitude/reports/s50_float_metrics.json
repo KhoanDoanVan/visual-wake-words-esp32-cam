@@ -1,0 +1,54 @@
+{
+  "tag": "s50",
+  "target_sparsity": 0.5,
+  "actual_sparsity": 0.5,
+  "immediate_validation": {
+    "samples": 2000,
+    "threshold": 0.47500000000000003,
+    "accuracy": 0.644,
+    "precision": 0.6032811334824758,
+    "recall": 0.8179979777553084,
+    "f1": 0.6944206008583691,
+    "roc_auc": 0.7172057818996098,
+    "pr_auc": 0.7059672042765555,
+    "specificity": 0.47378832838773494,
+    "confusion_matrix": [
+      [
+        479,
+        532
+      ],
+      [
+        180,
+        809
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.6705,
+    "expected_calibration_error_10_bins": 0.12450142899155618
+  },
+  "recovered_validation": {
+    "samples": 2000,
+    "threshold": 0.34,
+    "accuracy": 0.667,
+    "precision": 0.6209737827715356,
+    "recall": 0.8382204246713852,
+    "f1": 0.7134251290877797,
+    "roc_auc": 0.7587848129623684,
+    "pr_auc": 0.7567359200629534,
+    "specificity": 0.49950544015825915,
+    "confusion_matrix": [
+      [
+        505,
+        506
+      ],
+      [
+        160,
+        829
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.6675,
+    "expected_calibration_error_10_bins": 0.0378362744525075
+  },
+  "recovery_seconds": 30.56884050000008
+}

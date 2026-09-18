@@ -1,0 +1,7 @@
+granularity,smaller_dense_graph,stock_esp_nn_less_work,activation_shape_can_shrink,custom_sparse_kernel_required,priority
+Fine-grained,False,False,False,True,control
+Pattern,False,False,False,True,research
+Vector / M:N,False,False,False,True,research
+Kernel connection,False,False,False,True,analysis
+Channel / filter,True,True,True,False,highest
+Layer / block,True,True,False,False,high

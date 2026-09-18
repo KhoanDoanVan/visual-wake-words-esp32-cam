@@ -1,0 +1,58 @@
+{
+  "strategy": "one_shot_global",
+  "tag": "s75",
+  "target_sparsity": 0.75,
+  "actual_sparsity": 0.75,
+  "immediate_validation": {
+    "samples": 2000,
+    "threshold": 0.01,
+    "accuracy": 0.4945,
+    "precision": 0.4945,
+    "recall": 1.0,
+    "f1": 0.6617597858815657,
+    "roc_auc": 0.5,
+    "pr_auc": 0.4945,
+    "specificity": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        1011
+      ],
+      [
+        0,
+        989
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 1.0,
+    "expected_calibration_error_10_bins": 0.004309933662414556
+  },
+  "recovered_validation": {
+    "samples": 2000,
+    "threshold": 0.01,
+    "accuracy": 0.4945,
+    "precision": 0.4945,
+    "recall": 1.0,
+    "f1": 0.6617597858815657,
+    "roc_auc": 0.5,
+    "pr_auc": 0.4945,
+    "specificity": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        1011
+      ],
+      [
+        0,
+        989
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 1.0,
+    "expected_calibration_error_10_bins": 0.0043870322704315234
+  },
+  "recovery_epochs": 2,
+  "recovery_seconds": 31.99334700000327,
+  "model_path": "artifacts/pruning/unstructured_magnitude/models/one_shot_s75_recovered.keras",
+  "mask_path": "artifacts/pruning/unstructured_magnitude/models/one_shot_s75_masks.npz"
+}

@@ -1,0 +1,58 @@
+{
+  "strategy": "one_shot_global",
+  "tag": "s50",
+  "target_sparsity": 0.5,
+  "actual_sparsity": 0.5,
+  "immediate_validation": {
+    "samples": 2000,
+    "threshold": 0.47500000000000003,
+    "accuracy": 0.644,
+    "precision": 0.6032811334824758,
+    "recall": 0.8179979777553084,
+    "f1": 0.6944206008583691,
+    "roc_auc": 0.7172057818996098,
+    "pr_auc": 0.7059672042765555,
+    "specificity": 0.47378832838773494,
+    "confusion_matrix": [
+      [
+        479,
+        532
+      ],
+      [
+        180,
+        809
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.6705,
+    "expected_calibration_error_10_bins": 0.12450142899155618
+  },
+  "recovered_validation": {
+    "samples": 2000,
+    "threshold": 0.385,
+    "accuracy": 0.673,
+    "precision": 0.6279602750190986,
+    "recall": 0.8311425682507584,
+    "f1": 0.7154046997389034,
+    "roc_auc": 0.7588348190131006,
+    "pr_auc": 0.7577175716288267,
+    "specificity": 0.5182987141444114,
+    "confusion_matrix": [
+      [
+        524,
+        487
+      ],
+      [
+        167,
+        822
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.6545,
+    "expected_calibration_error_10_bins": 0.027458987347781655
+  },
+  "recovery_epochs": 2,
+  "recovery_seconds": 32.218285625000135,
+  "model_path": "artifacts/pruning/unstructured_magnitude/models/one_shot_s50_recovered.keras",
+  "mask_path": "artifacts/pruning/unstructured_magnitude/models/one_shot_s50_masks.npz"
+}

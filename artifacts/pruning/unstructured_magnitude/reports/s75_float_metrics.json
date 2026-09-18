@@ -1,0 +1,54 @@
+{
+  "tag": "s75",
+  "target_sparsity": 0.75,
+  "actual_sparsity": 0.75,
+  "immediate_validation": {
+    "samples": 2000,
+    "threshold": 0.01,
+    "accuracy": 0.4945,
+    "precision": 0.4945,
+    "recall": 1.0,
+    "f1": 0.6617597858815657,
+    "roc_auc": 0.5,
+    "pr_auc": 0.4945,
+    "specificity": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        1011
+      ],
+      [
+        0,
+        989
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 1.0,
+    "expected_calibration_error_10_bins": 0.004309933662414556
+  },
+  "recovered_validation": {
+    "samples": 2000,
+    "threshold": 0.01,
+    "accuracy": 0.4945,
+    "precision": 0.4945,
+    "recall": 1.0,
+    "f1": 0.6617597858815657,
+    "roc_auc": 0.5,
+    "pr_auc": 0.4945,
+    "specificity": 0.0,
+    "confusion_matrix": [
+      [
+        0,
+        1011
+      ],
+      [
+        0,
+        989
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 1.0,
+    "expected_calibration_error_10_bins": 0.0043374412059783984
+  },
+  "recovery_seconds": 31.26920066599996
+}

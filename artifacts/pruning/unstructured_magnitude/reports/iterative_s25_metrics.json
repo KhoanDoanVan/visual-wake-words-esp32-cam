@@ -1,0 +1,59 @@
+{
+  "strategy": "paper_iterative",
+  "tag": "s25",
+  "target_sparsity": 0.25,
+  "actual_sparsity": 0.25,
+  "immediate_validation": {
+    "samples": 2000,
+    "threshold": 0.365,
+    "accuracy": 0.6855,
+    "precision": 0.6437699680511182,
+    "recall": 0.8149646107178968,
+    "f1": 0.7193217313699242,
+    "roc_auc": 0.7763839424570373,
+    "pr_auc": 0.7824456788422154,
+    "specificity": 0.5588526211671613,
+    "confusion_matrix": [
+      [
+        565,
+        446
+      ],
+      [
+        183,
+        806
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.626,
+    "expected_calibration_error_10_bins": 0.02299783599376678
+  },
+  "recovered_validation": {
+    "samples": 2000,
+    "threshold": 0.385,
+    "accuracy": 0.6875,
+    "precision": 0.6477272727272727,
+    "recall": 0.8068756319514662,
+    "f1": 0.7185952273750563,
+    "roc_auc": 0.776297932049778,
+    "pr_auc": 0.7823495447469018,
+    "specificity": 0.5707220573689417,
+    "confusion_matrix": [
+      [
+        577,
+        434
+      ],
+      [
+        191,
+        798
+      ]
+    ],
+    "positive_prevalence": 0.4945,
+    "predicted_positive_rate": 0.616,
+    "expected_calibration_error_10_bins": 0.032884753569960595
+  },
+  "prune_retrain_rounds": 5,
+  "final_recovery_epochs": 3,
+  "recovery_seconds": 182.9515969999993,
+  "model_path": "artifacts/pruning/unstructured_magnitude/models/iterative_s25_recovered.keras",
+  "mask_path": "artifacts/pruning/unstructured_magnitude/models/iterative_s25_masks.npz"
+}

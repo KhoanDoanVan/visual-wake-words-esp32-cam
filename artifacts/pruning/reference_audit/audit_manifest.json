@@ -1,0 +1,115 @@
+{
+  "notebook": "optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb",
+  "status": "complete",
+  "changes_model_weights": false,
+  "changes_model_topology": false,
+  "claims_device_speedup": false,
+  "baseline_contract": {
+    "experiment": "pruning_reference_audit",
+    "seed": 42,
+    "input_shape": [
+      1,
+      80,
+      80,
+      3
+    ],
+    "batch_size": 1,
+    "float_parameters": 111793,
+    "dense_macs_batch1": 3993536,
+    "int8_tflite_bytes": 167976,
+    "tflite_live_activation_peak_bytes": 38400,
+    "tflm_arena_used_bytes": 69068,
+    "tflm_arena_reserved_bytes": 358400,
+    "device_invoke_mean_us": 455546.4,
+    "device_invoke_min_us": 453364,
+    "device_invoke_max_us": 459697,
+    "device_profile_samples": 20,
+    "fused_tflite_operators": 26,
+    "hashes": {
+      "configs/fast_80.yaml": "96481848d8adcc955801e37537dda34cfdbb3c6c3a3f58004547e8d0da21f96c",
+      "artifacts/fast_80/models/final.keras": "1fbfb79a810f4a4efa17d3a2760fd059e0338e4d5d5121ba7998259db81a4acf",
+      "artifacts/fast_80/models/vww_mobilenetv1_80_int8.tflite": "70eb89724ae7f5f84097922e481ba8c61946ef7219fdbeddabc81a612ae7691d",
+      "data/processed/manifest.csv": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+      "artifacts/device_profiles/fast_80/device_profile_summary.json": "9dcc37c9674c0050a608c92b6be290eb1afb0ae0de6385edc321109ee1037d34",
+      "artifacts/device_profiles/fast_80/operator_profile.csv": "0e156d3a0c1933d2d115418b5911d0e5d6a8f1edaf0f080298de951d8cee4b86"
+    },
+    "measurement_scope": {
+      "macs": "static dense estimate",
+      "live_activations": "FlatBuffer tensor-liveness estimate",
+      "arena": "MicroAllocator value measured on ESP32-CAM",
+      "latency": "batch-one Invoke measured on ESP32-CAM"
+    }
+  },
+  "generated_artifacts": [
+    {
+      "path": "artifacts/pruning/reference_audit/activation_liveness.csv",
+      "bytes": 3339,
+      "sha256": "b593f7fdbd4f9e96967744c3c9694b4a7be9eb3154e7342378a865ce9e5eb88a"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/baseline_contract.json",
+      "bytes": 1485,
+      "sha256": "01afdcf1544e8d1712afe300bddc044b30b314d625ac3558922a18fa885be9e5"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/channel_dependency_edges.csv",
+      "bytes": 1385,
+      "sha256": "ad443c35cca99bc12b9a7ec385b6eff6d8270e090a30547e5a35613955a78858"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/channel_dependency_validation.csv",
+      "bytes": 428,
+      "sha256": "63e16a13bc682911f2ebe70d1f555c079de0c744c416ab32872fe3ba05cd27eb"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/figures/baseline_resource_concentration.png",
+      "bytes": 171232,
+      "sha256": "37c3ae73cf7e5a7b9b737fa55481cabe18f4ffb6a63462fa8267a61c457a083d"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/figures/channel_dependency_path.png",
+      "bytes": 60759,
+      "sha256": "2da2c3295080a4f19c6671d75fbd377b930b565eb3a7ff3a7b6f47d4234553d3"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/figures/esp32_pruning_support_matrix.png",
+      "bytes": 75867,
+      "sha256": "a518d2bd71f863084d4b17e3daec063c9ec43cfaf822aa3ce81cbe85fc4d3656"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/figures/logical_vs_physical_pruning_effect.png",
+      "bytes": 120125,
+      "sha256": "614a6d508f6feccbd6ee7d56f8a7d729595c9eb5dbfb815397627d9d88727ae3"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/figures/pruning_granularity_masks.png",
+      "bytes": 77400,
+      "sha256": "eb32ddba4d7a85b9d2bcccc948591da1c0279b6235ebea0769e1d4350700b52c"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/granularity_physical_effect.csv",
+      "bytes": 603,
+      "sha256": "22f4ca1b08fa013924ec0bb06d0abb35f85c0eb8e587e2116509a67c096346d0"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/granularity_support_matrix.csv",
+      "bytes": 388,
+      "sha256": "fe1d4ed2abbffcc3ffd45029312deaa261ade7b039d893d906b1b218a729d753"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/layer_inventory.csv",
+      "bytes": 12452,
+      "sha256": "b7545d4482fdc12e40e582e4d535dff9bb564440e76dd138db43738863bf0c0a"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/next_experiment_gate.csv",
+      "bytes": 300,
+      "sha256": "5099bdcea0e6ff0ec64698abd869316687326e8e22603ebb1fe872599926c0df"
+    },
+    {
+      "path": "artifacts/pruning/reference_audit/pruning_unit_inventory.csv",
+      "bytes": 1564,
+      "sha256": "59e54c6f5b59a2456edf010a37d24bd14a31df301a3e2f6a01e60fd1fe9385c4"
+    }
+  ]
+}

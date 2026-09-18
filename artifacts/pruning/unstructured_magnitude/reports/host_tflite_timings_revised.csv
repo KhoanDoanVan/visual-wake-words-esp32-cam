@@ -1,0 +1,10 @@
+export_key,strategy,tag,host_median_ms,host_p95_ms
+baseline__s00,baseline,s00,0.079,0.1505892499999995
+one_shot_global__s25,one_shot_global,s25,0.0789375,0.0899705
+one_shot_global__s50,one_shot_global,s50,0.081916,0.08262710000000001
+one_shot_global__s75,one_shot_global,s75,0.082,0.15399759999999993
+one_shot_global__s90,one_shot_global,s90,0.0824165,0.1778374999999998
+paper_iterative__s25,paper_iterative,s25,0.082083,0.21864019999999998
+paper_iterative__s50,paper_iterative,s50,0.081917,0.082625
+paper_iterative__s75,paper_iterative,s75,0.081958,0.08729405
+paper_iterative__s90,paper_iterative,s90,0.082875,0.17514585

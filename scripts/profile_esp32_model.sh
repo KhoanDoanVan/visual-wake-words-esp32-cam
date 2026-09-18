@@ -26,9 +26,18 @@ if [[ -z "${IDF_PATH:-}" ]] || ! command -v idf.py >/dev/null 2>&1; then
   exit 2
 fi
 
-STAGE_DIR="$(mktemp -d /private/tmp/vww-device-profile.XXXXXX)"
+if [[ -n "${VWW_PROFILE_STAGE_DIR:-}" ]]; then
+  STAGE_DIR="$VWW_PROFILE_STAGE_DIR"
+  mkdir -p "$STAGE_DIR"
+  REMOVE_STAGE_DIR=0
+else
+  STAGE_DIR="$(mktemp -d /private/tmp/vww-device-profile.XXXXXX)"
+  REMOVE_STAGE_DIR=1
+fi
 cleanup() {
-  rm -rf -- "$STAGE_DIR"
+  if [[ "$REMOVE_STAGE_DIR" -eq 1 ]]; then
+    rm -rf -- "$STAGE_DIR"
+  fi
 }
 trap cleanup EXIT
 
@@ -41,7 +50,9 @@ rsync -a \
 
 python "$SCRIPT_DIR/embed_tflite.py" "$MODEL_PATH" "$STAGE_DIR/include/model_data.h"
 pushd "$STAGE_DIR" >/dev/null
-idf.py set-target esp32
+if [[ ! -f sdkconfig ]]; then
+  idf.py set-target esp32
+fi
 idf.py -D VWW_INPUT_SIZE="$INPUT_SIZE" -D VWW_MODEL_VARIANT="$VARIANT" build
 python -m esptool --chip esp32 merge_bin \
   --flash_mode dio --flash_freq 40m --flash_size 4MB \

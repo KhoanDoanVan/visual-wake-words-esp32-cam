@@ -1,0 +1,12 @@
+producer,producer_channels,dependent,dependent_channels,valid
+stem_conv,8,block1_dw,8,True
+block1_pw,16,block2_dw,16,True
+block2_pw,32,block3_dw,32,True
+block3_pw,32,block4_dw,32,True
+block4_pw,64,block5_dw,64,True
+block5_pw,64,block6_dw,64,True
+block6_pw,128,block7_dw,128,True
+block7_pw,128,block8_dw,128,True
+block8_pw,128,block9_dw,128,True
+block9_pw,128,block10_dw,128,True
+block10_pw,256,person_probability input,256,True

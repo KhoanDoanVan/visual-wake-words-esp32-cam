@@ -5,9 +5,9 @@ This project runs the exported 80×80 full-INT8 person detector on an **AI-Think
 | Inference state | Dashboard | Onboard light |
 |---|---|---|
 | Non-person | Red | Small red LED on (GPIO33, active-low) |
-| Person detected | Blue | Small red LED off |
+| Person detected | Blue | Small red LED off; white GPIO4 flash on |
 
-GPIO4 controls the board's bright white camera flash LED. The firmware configures GPIO4 as an output and holds it low at startup and after every inference decision, so it is never used as a status light. The photographed ESP32-CAM and ESP32-CAM-MB do not contain a controllable blue LED; blue person status is therefore shown on the webpage.
+GPIO4 controls the board's bright white camera flash LED. The firmware holds it low during startup and turns it on only while the stabilized 2-of-3 inference state is `person`. The photographed ESP32-CAM and ESP32-CAM-MB do not contain a controllable blue LED, so the webpage also shows the person state in blue.
 
 ## Live camera dashboard
 
@@ -19,7 +19,7 @@ After the firmware boots:
 
 The page shows the live 160×120 camera stream, person probability, the 0.44 post-transform threshold, true model-input brightness, inference latency, frame rate, current-frame classification, frame motion, activation gate, and temporal vote. Its states are:
 
-- **Blue / PERSON**: while dormant, at least 2 of the latest 3 frames were at or above 0.44 and contained meaningful scene motion. Once active, the classifier alone maintains or clears the state, so a person may stand still.
+- **Blue / PERSON**: while dormant, at least 2 of the latest 3 frames were at or above 0.44 and contained meaningful scene motion. Once active, the classifier alone maintains or clears the state, so a person may stand still. The white flash is on in this state.
 - **Red / NO PERSON**: the model has no stable person detection.
 - **Amber / TOO DARK**: mean input brightness is below 30/255, so inference is skipped.
 - **CAMERA ERROR**: capture, conversion, self-test, or inference failed.
@@ -39,7 +39,7 @@ confirmation, suppression, and release behavior.
 
 ## Real-camera preprocessing
 
-The deployed model and its training dataset are unchanged. During the existing bilinear resize,
+The firmware source is reset to the Fast-80 baseline and its original training dataset. During the existing bilinear resize,
 firmware reduces chroma by 50% around integer BT.601 luminance and applies a gamma-1.2 lookup
 table. This corrects the low-color OV3660 stream using a 256-byte flash LUT, integer arithmetic,
 and no additional image buffer. Evaluation on the supplied screen recording showed the labeled,
@@ -161,4 +161,4 @@ snapshots. Constants are reported as flash storage and are not counted as SRAM/P
 
 Edit `main/app_config.h` to tune the post-transform score threshold, motion threshold, temporal debounce, frame interval, or output GPIO. The current 0.44 score threshold and 2.0 motion threshold were selected from the supplied real-device recording; keep the score threshold aligned with the preprocessing transform. The older 0.27 value was selected before camera-domain correction and must not be reused with the transformed input.
 
-If the red LED never changes, remember it is active-low: red off means the debounced person state is active. GPIO4 is reserved only to keep the white flash off. If you add an external indicator, select a pin that is genuinely free on your board and is not used by the camera, serial console, flash boot strap, microSD, or flash LED, and use a series resistor.
+If the red LED never changes, remember it is active-low: red off means the debounced person state is active. At the same transition GPIO4 turns the white flash on; it turns off again when the stabilized state returns to non-person. If you add an external indicator, select a pin that is genuinely free on your board and is not used by the camera, serial console, flash boot strap, microSD, or flash LED, and use a series resistor.

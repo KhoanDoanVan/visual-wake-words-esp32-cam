@@ -1,0 +1,3 @@
+notebook,new decision,required representation,device_speed_claim_allowed,purpose
+13,Unstructured global magnitude,masked dense,False,Scientific control; no stock ESP-NN speed claim
+14,L1/L2 structured channel magnitude,rebuilt dense,True,First candidate for physical size/MAC/arena/latency reduction
