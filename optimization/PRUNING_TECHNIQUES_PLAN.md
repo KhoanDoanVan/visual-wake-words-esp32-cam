@@ -440,21 +440,25 @@ change at a time.
 | Notebook | Controlled experiment | Intended conclusion |
 |---:|---|---|
 | [12](pruning/12_pruning_reference_and_granularity_audit.ipynb) | Pruning reference and granularity audit | Freeze Fast-80 and enumerate legal groups/dependencies |
-| [13](pruning/13_unstructured_magnitude_pruning.ipynb) | Unstructured magnitude pruning | Establish accuracy/compression control and verify dense ESP-NN limitation |
-| 14 | Structured channel magnitude | Establish first physically smaller dense model |
-| 15 | Scaling-based Network Slimming | Compare learned BN scales against magnitude at equal budgets |
-| 16 | APoZ and activation-energy channel pruning | Evaluate data-dependent neuron selection |
-| 17 | First-order Taylor channel pruning | Evaluate loss-sensitive selection |
-| 18 | Regression/reconstruction channel pruning | Evaluate LASSO/least-squares preservation |
-| 19 | Diagonal second-order channel pruning | Test whether curvature justifies its complexity |
-| 20 | Layer/block sensitivity | Test all legal single-block removals and selected combinations |
-| 21 | Iterative versus one-shot recovery | Isolate recovery schedule using the winning criterion |
-| 22 | Automatic device-aware ratio allocation | NetAdapt-style search using physical latency |
-| 23 | Cross-technique report | Select Pareto candidates across quality and hardware metrics |
+| [13](pruning/13_unstructured_magnitude_pruning.ipynb) | Fine-grained/unstructured magnitude pruning | Compare one-shot with Han-inspired iterative recovery and verify the dense ESP-NN limitation |
+| 14 | Pattern-based magnitude pruning | Constrain small kernels to a reusable pattern library and quantify regularity, encoding cost, quality, and unsupported ESP-NN speedup |
+| 15 | Vector/block and M:N pruning | Compare contiguous groups and 2:4 masks at an equal nonzero budget; separate portable sparsity from NVIDIA-specific support |
+| 16 | Kernel-level pruning | Remove complete input-output kernel connections and test whether irregular channel connectivity remains a hardware barrier |
+| 17 | Filter/channel-level magnitude pruning | Rebuild physically narrower dense tensors and establish the first shape-reducing ESP-NN baseline |
+| 18 | Layer/block sensitivity pruning | Test legal single-block removals and selected combinations without repeating arbitrary block deletion |
+| 19 | Scaling-based Network Slimming | Compare learned BN scales against magnitude at equal physical channel counts |
+| 20 | APoZ and activation-energy channel pruning | Evaluate data-dependent neuron selection |
+| 21 | First-order Taylor channel pruning | Evaluate loss-sensitive selection |
+| 22 | Regression/reconstruction channel pruning | Evaluate LASSO/least-squares preservation |
+| 23 | Diagonal second-order channel pruning | Test whether curvature justifies its complexity |
+| 24 | Ratio policy and automatic allocation | Compare uniform, sensitivity-guided, and device-aware NetAdapt-style budgets |
+| 25 | Recovery schedule and regularization | Isolate one-shot, iterative, and sparsity-regularized training with the winning criterion |
+| 26 | Cross-technique device report | Select Pareto candidates across held-out quality, flash, arena, latency, and full-pipeline FPS |
 
-Pattern, vector, and M:N pruning should be placed in a separate sparse-kernel research phase
-unless custom ESP32 kernels are authorized. They must not delay the dense structured path that
-ESP-NN can use immediately.
+Notebooks 14-16 deliberately complete the requested granularity sequence even though stock
+dense ESP-NN kernels do not exploit their zeros. Every report must label theoretical sparse
+work separately from measured dense execution. Notebook 17 is the first experiment expected
+to reduce stock ESP-NN work without a custom sparse kernel because it changes tensor shapes.
 
 ## Required controls and reproducibility
 
@@ -472,13 +476,14 @@ ESP-NN can use immediately.
 
 ## Recommended starting point
 
-Start with [Notebook 12](pruning/12_pruning_reference_and_granularity_audit.ipynb), which produces
-a dependency graph and a pruning-unit inventory for every convolution. Then run
-[Notebook 13](pruning/13_unstructured_magnitude_pruning.ipynb) as the unstructured magnitude
-control. This ordering is
-deliberate: it will empirically demonstrate why “many zeros” and “faster on ESP32” are different
-claims before we invest in structured channel techniques.
+Start with [Notebook 12](pruning/12_pruning_reference_and_granularity_audit.ipynb), then run the
+executed [Notebook 13](pruning/13_unstructured_magnitude_pruning.ipynb) as the fine-grained
+control. Continue through pattern, vector/M:N, and kernel granularity in Notebooks 14-16 using
+the same data split, nonzero budgets, recovery rules, export checks, and honest dense-runtime
+accounting. This sequence demonstrates precisely where extra regularity does and does not map
+onto ESP32-CAM hardware support.
 
-The first likely deployment improvement is Notebook 14—physical channel pruning using L1/L2
-group magnitude—because it changes dense tensor dimensions without requiring a new sparse
-runtime. The later criteria can then be compared against that exact structural baseline.
+The first likely stock-runtime deployment improvement is now Notebook 17—physical channel
+pruning using L1/L2 group magnitude—because it changes dense tensor dimensions without requiring
+a new sparse runtime. The later pruning criteria can then be compared against that exact
+structural baseline.

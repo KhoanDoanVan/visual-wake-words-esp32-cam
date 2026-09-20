@@ -1,6 +1,16 @@
 # ESP32-CAM firmware build report
 
-Build, flash, and connected-device smoke-test status: **PASS** on 2026-09-15 using ESP-IDF v5.3, Xtensa GCC 13.2.0, and esptool 4.11.0 for target `esp32`.
+Fast-80 build, flash, and connected-device smoke-test status: **PASS** on 2026-09-15.
+Notebook 13's selected `paper_iterative__s50` INT8 model was then built, flashed, and profiled
+successfully on 2026-09-18 using ESP-IDF v5.3, Xtensa GCC 13.2.0, and esptool 4.11.0 for target
+`esp32`. Its exact firmware and measurements are in
+`artifacts/device_profiles/prune_unstructured_iterative_s50/`; the static `dist/` hashes below
+remain the earlier Fast-80 build record.
+
+The same iterative-s50 artifact was redeployed on 2026-09-20 with
+`kFlashLedEnabled = true`. Boot verification reported `WHITE FLASH=enabled`; the light now
+follows only the stabilized person state. The optional 20-inference profile could not complete
+in that session because mean scene brightness was 16.8-18.2/255, below the 30/255 safety gate.
 
 ## Resolved dependencies
 
@@ -77,15 +87,15 @@ Espressif image inspection found a valid checksum and valid SHA validation hash 
 - With inference disabled for the measurement, 20 camera captures completed at 6.94 fps and averaged 1,838.6 bytes per JPEG in the current scene.
 - Startup copy tests measured 181.55 MiB/s for internal SRAM and 4.71 MiB/s for mapped 40 MHz PSRAM.
 - The model is invoked once per captured live frame. The dashboard atomically commits each JPEG with that frame's inference result and polls telemetry every 400 ms.
-- The model binary and training dataset are unchanged. The deployment input now applies 50% chroma reduction around BT.601 luma followed by a gamma-1.2 256-byte LUT, with a matched score threshold of 0.44.
+- The selected model has 50% unstructured kernel sparsity and was pruned from Fast-80. The dataset and deployment input contract are unchanged: 50% chroma reduction around BT.601 luma followed by a gamma-1.2 256-byte LUT. Its current validation-selected threshold is 0.47; labelled OV3660 calibration is still required.
 - The temporal rule remains 2-of-3 without an initial full-window wait. While dormant, votes additionally require frame motion of at least 2.0 input levels. Once awake, the model alone maintains or releases the state.
 - In the final static-scene smoke test, raw scores remained high at 0.508–0.586, but measured motion was only 0.4–0.7 and `wake=0` throughout. This directly verifies static false-positive suppression on the connected board.
-- GPIO33 red is configured for non-person. GPIO4 is active-high and follows the stabilized person state; the white flash and blue dashboard state turn on together.
+- GPIO33 red is configured for non-person. The 2026-09-18 benchmark used `kFlashLedEnabled = false`; the 2026-09-20 deployment enables it, so GPIO4 now follows the stabilized person state.
 
 ## Remaining validation gates
 
-- Exercise a person entering, remaining still, and leaving in several intended lighting conditions. Confirm blue/red dashboard transitions; the onboard red LED should turn off and the white flash should turn on for the stabilized person state, then reverse after release.
-- Confirm that typical person entry produces motion above 2.0 on at least two of three frames. If it does not, lower only `kActivationMotionThreshold`; keep the 0.44 score threshold aligned with the camera transform.
+- Exercise a person entering, remaining still, and leaving in several intended lighting conditions. Confirm that the dashboard turns blue, the active-low red LED turns off, and the GPIO4 white flash turns on only for the stabilized person state, then all reverse after release.
+- Confirm that typical person entry produces motion above 2.0 on at least two of three frames. If it does not, lower only `kActivationMotionThreshold`. Calibrate the iterative-s50 score threshold on labelled transformed OV3660 frames before production use.
 - Repeat the recording-style validation from additional viewpoints before treating the single-recording calibration ranges as production accuracy measurements.
 
 ## Optimized model validation
@@ -97,3 +107,10 @@ The deployed model retains the VWW MobileNetV1-style depthwise-separable chain a
 | Held-out COCO test (2,000 images) | 65.75% | 60.10% | 89.81% | 72.01% | 78.73% |
 
 The previous 96x96 baseline F1 was 72.34%, so the optimized model retained F1 within 0.33 percentage points while increasing recall. Real labeled OV3660 frames are still required to quantify exposure, optics, background, and placement shift.
+
+The currently deployed iterative-s50 model is reported separately because it is the pruning
+experiment, not a replacement for the Fast-80 baseline table above. At threshold 0.470 on the
+same 2,000-image held-out INT8 test it measured F1 72.18%, recall 83.69%, and PR-AUC 78.10%.
+On the board, 20 measured invokes after two warm-ups averaged 416.805 ms and used 69,068 B of
+the TFLM arena. Model bytes, dense MACs, live activation peak, and arena use were unchanged from
+Fast-80, so the separate-session latency difference is not evidence of sparse acceleration.

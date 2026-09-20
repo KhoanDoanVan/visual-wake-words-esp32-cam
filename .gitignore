@@ -97,6 +97,3 @@ cmake_install.cmake
 *.bak
 *.orig
 *~
-
-# Test
-/tests

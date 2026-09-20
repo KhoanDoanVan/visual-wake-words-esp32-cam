@@ -28,7 +28,20 @@
 
 ## Physical ESP32-CAM profile
 
-Pending. Run `source scripts/activate_esp_idf.sh && scripts/profile_esp32_model.sh artifacts/pruning/unstructured_magnitude/models/iterative_s50_int8.tflite 80 prune_unstructured_iterative_s50 /dev/cu.usbserial-120`.
+- Exact selected-model profile: `artifacts/device_profiles/prune_unstructured_iterative_s50`.
+- Batch 1, 20 measured invokes after 2 warm-ups.
+
+| Metric | Fast-80 | Iterative-s50 | Change |
+|---|---:|---:|---:|
+| Full Invoke mean | 455.546 ms | 416.805 ms | -8.5% |
+| TFLM arena used | 69,068 B | 69,068 B | +0 B |
+| Live activation peak | 38,400 B | 38,400 B | +0 B |
+| Dense MACs executed | 3,993,536 | 3,993,536 | unchanged |
+| Model bytes | 167,976 B | 167,976 B | unchanged |
+
+- Candidate live pipeline: 1.68 fps, 59.8 ms median preprocessing, and 597.0 ms median frame period.
+- The observed Invoke difference comes from separate physical capture sessions. Because the FlatBuffer shapes, dense MAC count, and arena are unchanged, it must not be attributed to unstructured zeros without repeated alternating trials or a sparse ESP-NN kernel.
+- White flash was compiled in but disabled with `kFlashLedEnabled = false`; boot confirmed GPIO4 was forced low.
 
 ## Next technique
 

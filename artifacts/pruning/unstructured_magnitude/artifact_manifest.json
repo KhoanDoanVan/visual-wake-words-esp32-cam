@@ -13,7 +13,7 @@
   "selected_export_key": "paper_iterative__s50",
   "selected_sparsity": 0.5,
   "selection_reason": "highest paper-inspired sparsity satisfying INT8 validation recall and F1 gates",
-  "physical_device_profile_available": false,
+  "physical_device_profile_available": true,
   "physical_device_variant": "prune_unstructured_iterative_s50",
   "flash_led_enabled_during_profile": false,
   "frozen_input_hashes": {
@@ -26,8 +26,8 @@
   "generated_artifacts": [
     {
       "path": "artifacts/pruning/unstructured_magnitude/UNSTRUCTURED_MAGNITUDE_REPORT.md",
-      "bytes": 1697,
-      "sha256": "282136421d74c509b329e72c9fdcd9d1611a44aafc1e7dd67c78ba41118781ec"
+      "bytes": 2440,
+      "sha256": "e034ca394b444790cd6e3290b1d363a63936510b941dd94360cb3e13a49d7c0f"
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/figures/accuracy_theoretical_compute_frontier.png",
@@ -41,8 +41,8 @@
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/figures/efficiency_dashboard_revised.png",
-      "bytes": 231261,
-      "sha256": "8f91f04884721eaf9c7d782f1b9d9dd274a92fa2ac75453df69e7c900cc57bea"
+      "bytes": 230644,
+      "sha256": "6fb68b8c6df1f51ee478781f1ccd7f0dd2a5f5b3a716794cff54274b93c8b31e"
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/figures/iterative_round_recovery.png",
@@ -68,6 +68,11 @@
       "path": "artifacts/pruning/unstructured_magnitude/figures/one_shot_vs_iterative_quality.png",
       "bytes": 169735,
       "sha256": "6a65225529c0c75e8612b1f28391760df037b7dcdd6761016065a786e4103f0b"
+    },
+    {
+      "path": "artifacts/pruning/unstructured_magnitude/figures/physical_esp32_comparison.png",
+      "bytes": 100210,
+      "sha256": "31193b544a6ceed539c87864fac441f3aef0e970b7be948b8abea1bc467c9d1b"
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/figures/quality_vs_sparsity.png",
@@ -221,8 +226,8 @@
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/reports/float_strategy_comparison.csv",
-      "bytes": 4820,
-      "sha256": "3d08f65a71119ebcb021a44b53aaa0e82876e32d349fe91bccbfc7b0042cce22"
+      "bytes": 4747,
+      "sha256": "e6b016891e99fa70524d408b36bb70ce72688013857107538f005904753eda48"
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/reports/host_tflite_timings.csv",
@@ -231,8 +236,8 @@
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/reports/host_tflite_timings_revised.csv",
-      "bytes": 622,
-      "sha256": "dbd30d2bd32f5f21829fc9a9cedcd6417baf4fe70d1391cbd8533bef93347825"
+      "bytes": 619,
+      "sha256": "4374bb2ff3da04d53010a6ccc1137c41516655085f719dcb0075970d54716c0d"
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/reports/int8_export_inventory.csv",
@@ -323,6 +328,11 @@
       "path": "artifacts/pruning/unstructured_magnitude/reports/one_shot_sweep.csv",
       "bytes": 2532,
       "sha256": "6324e24b71654f87014929aedf28e18be174a76daffb908e3a7af51343aa881d"
+    },
+    {
+      "path": "artifacts/pruning/unstructured_magnitude/reports/physical_device_comparison.csv",
+      "bytes": 681,
+      "sha256": "aa15b7a5231066f6f5512069db5beca6284dd7e65e5fda3aebba450d2b407676"
     },
     {
       "path": "artifacts/pruning/unstructured_magnitude/reports/prunable_tensor_inventory.csv",

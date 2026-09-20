@@ -3,6 +3,7 @@
 Notebook-first pipeline for training a **person / no-person** Visual Wake Word model on real MS COCO 2017 images and exporting it as a full-INT8 TensorFlow Lite Micro model for an AI-Thinker ESP32-CAM.
 
 > Fast-80 is the frozen pre-pruning reference. It has been trained, exported, compiled, flashed, and smoke-tested on the connected board.
+> The board currently runs Notebook 13's `paper_iterative__s50` INT8 candidate at threshold 0.47 with the GPIO4 white flash enabled for stabilized person detection.
 
 ## Frozen Fast-80 reference (80x80)
 
@@ -30,9 +31,9 @@ Notebook-first pipeline for training a **person / no-person** Visual Wake Word m
 
 The float32 memory row is a graph-level baseline, not a measured TFLite Micro tensor-arena requirement.
 
-The ESP-IDF firmware also includes a device-hosted live camera and inference dashboard. Connect to its `VWW-Camera` Wi-Fi network and open `http://192.168.4.1`; person is blue, non-person is red, and low-light/camera faults are reported explicitly. The dashboard also shows raw score, temporal votes, frame motion, and whether dormant activation is blocked by a static scene. GPIO4 drives the bright white flash only while the stabilized inference state is `person`. See [the firmware guide](firmware/esp32_cam_vww/README.md) and [build report](firmware/esp32_cam_vww/BUILD_REPORT.md) for details.
+The ESP-IDF firmware also includes a device-hosted live camera and inference dashboard. Connect to its `VWW-Camera` Wi-Fi network and open `http://192.168.4.1`; person is blue, non-person is red, and low-light/camera faults are reported explicitly. The dashboard also shows raw score, temporal votes, frame motion, and whether dormant activation is blocked by a static scene. With `kFlashLedEnabled = true`, GPIO4 drives the white flash only while the stabilized inference state is `person`. See [the firmware guide](firmware/esp32_cam_vww/README.md) and [build report](firmware/esp32_cam_vww/BUILD_REPORT.md) for details.
 
-The optimized network keeps the branch-free, depthwise-separable MobileNetV1 structure used for Visual Wake Words and reduces spatial resolution from 96 to 80. The deployed network and dataset remain unchanged; firmware now conditions the real OV3660 input with fixed-point chroma reduction and a 256-byte gamma LUT, then uses a motion-gated 2-of-3 activation rule. Run `python scripts/train_fast_vww.py --config configs/fast_80.yaml` only to reproduce the existing fine-tuning and INT8 export.
+Fast-80 keeps the branch-free, depthwise-separable MobileNetV1 structure used for Visual Wake Words and reduces spatial resolution from 96 to 80. The currently deployed iterative-s50 candidate preserves that topology and input contract while setting 50% of kernel weights to zero. The dataset and camera pipeline remain unchanged: firmware conditions the real OV3660 input with fixed-point chroma reduction and a 256-byte gamma LUT, then uses a motion-gated 2-of-3 activation rule. Run `python scripts/train_fast_vww.py --config configs/fast_80.yaml` only to reproduce the frozen pre-pruning reference.
 
 ## Complete 96x96 versus 80x80 comparison
 
@@ -211,9 +212,9 @@ state, and unrounded value.
 | `notebooks/11_model_version_comparison.ipynb` | Rebuild the complete two-version comparison |
 | [`optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb`](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb) | Executed baseline freeze, pruning-unit inventory, dependency audit, and ESP32 granularity visualizations |
 | [`artifacts/pruning/reference_audit/`](artifacts/pruning/reference_audit/) | Machine-readable Notebook 12 tables, contract, manifest, and five generated figures |
-| [`optimization/pruning/13_unstructured_magnitude_pruning.ipynb`](optimization/pruning/13_unstructured_magnitude_pruning.ipynb) | Executed global magnitude-pruning sweep, masked recovery, INT8 export, quality gates, and efficiency analysis |
-| [Notebook 13 experiment report](artifacts/pruning/unstructured_magnitude/UNSTRUCTURED_MAGNITUDE_REPORT.md) | Selected-candidate metrics, resource interpretation, device command, and decision |
-| [`artifacts/pruning/unstructured_magnitude/`](artifacts/pruning/unstructured_magnitude/) | Reproducible metrics, masks, deployable TFLite models, manifest, and five comparison figures |
+| [`optimization/pruning/13_unstructured_magnitude_pruning.ipynb`](optimization/pruning/13_unstructured_magnitude_pruning.ipynb) | Executed one-shot control plus Han-inspired sensitivity-adjusted iterative pruning, recovery, INT8 export, selection, and physical profiling |
+| [Notebook 13 experiment report](artifacts/pruning/unstructured_magnitude/UNSTRUCTURED_MAGNITUDE_REPORT.md) | Held-out quality, storage/compute interpretation, physical ESP32-CAM evidence, and decision |
+| [`artifacts/pruning/unstructured_magnitude/`](artifacts/pruning/unstructured_magnitude/) | Reproducible metrics, masks, deployable TFLite models, manifest, and comparison figures |
 
 ### Optimization restart
 
@@ -226,37 +227,46 @@ storage, and complete camera-pipeline FPS are measured on the physical board.
 
 ### Notebook 13 result — unstructured magnitude pruning
 
-Notebook 13 applies one-shot global magnitude pruning to the frozen Fast-80 float model at
-25%, 50%, 75%, and 90% kernel sparsity. Every candidate receives the same two-epoch masked
-recovery schedule, is selected using validation data only, and is exported to full INT8. The
-50% candidate (`s50`) is the highest sparsity that satisfies recall >= 0.80 and an F1 drop no
-larger than 0.03. The 75% and 90% candidates fail because global ranking removes the tiny
-classifier head completely, causing an all-person prediction collapse.
+Notebook 13 now separates two experiments. Global one-shot magnitude pruning remains the
+negative control. The primary branch adapts Han et al.'s train-prune-retrain idea to Fast-80:
+it measures single-layer sensitivity, protects fragile layers with adjusted magnitude scores,
+reaches each target over five cumulative rounds, reapplies masks after every optimizer step,
+and performs low-learning-rate recovery. All full-INT8 thresholds and candidate selection use
+validation data only; the held-out test is opened once after selection. The paper-inspired 50%
+candidate (`paper_iterative__s50`) is the highest sparsity satisfying recall >= 0.80 and an F1
+drop no larger than 0.03. Both policies collapse at 75% and 90%, establishing the safe range
+for this small network.
 
 | Perspective | Fast-80 reference | Selected `s50` | Observed change |
 |---|---:|---:|---:|
 | Kernel sparsity | 0% | 50% | +50 percentage points |
-| Validation float F1 | 0.715 | 0.713 | -0.002 |
-| Selected INT8 test F1 | — | 0.706 | Reported after validation-only selection |
-| Selected INT8 test recall / PR-AUC | — | 0.823 / 0.781 | Held-out test result |
+| Held-out INT8 F1 | 0.725 | 0.722 | -0.003 |
+| Held-out INT8 recall | 0.847 | 0.837 | -0.010 |
+| Held-out INT8 PR-AUC | 0.787 | 0.781 | -0.006 |
 | Raw TFLite bytes | 167,976 | 167,976 | **0%** |
-| Gzip diagnostic bytes | 125,325 | 92,403 | **-26.3%** |
+| Gzip diagnostic bytes | 125,325 | 90,900 | **-27.5%** |
 | Dense executed MACs | 3,993,536 | 3,993,536 | **0%** |
-| Theoretical nonzero MACs | 3,993,536 | 2,558,443 | -35.9% |
+| Theoretical nonzero MACs | 3,993,536 | 2,935,819 | -26.5% |
 | Fused live activation peak | 38,400 B | 38,400 B | **0%** |
 | Physical parameters / operators | 111,793 / 26 | 111,793 / 26 | **0% / 0%** |
-| ESP32 latency and arena | Measured reference | Pending candidate profile | No speed or RAM claim yet |
+| ESP32 Invoke mean, batch 1 | 455.546 ms | 416.805 ms | -8.5% observed in separate captures |
+| ESP32 TFLM arena used | 69,068 B | 69,068 B | **0%** |
+| Candidate camera pipeline | — | 597.0 ms period / 1.68 fps | Includes capture, preprocess, inference, publish, and delay |
 
-![Notebook 13 quality versus sparsity](artifacts/pruning/unstructured_magnitude/figures/quality_vs_sparsity.png)
+![Notebook 13 one-shot versus iterative validation quality](artifacts/pruning/unstructured_magnitude/figures/one_shot_vs_iterative_quality.png)
 
-![Notebook 13 efficiency dashboard](artifacts/pruning/unstructured_magnitude/figures/efficiency_dashboard.png)
+![Notebook 13 paper-inspired efficiency dashboard](artifacts/pruning/unstructured_magnitude/figures/efficiency_dashboard_revised.png)
 
-The experiment therefore succeeds as the negative hardware control: unstructured zeros make
-the model mathematically sparse and more compressible, but stock dense TFLite Micro/ESP-NN
-kernels retain the same tensor shapes and execute the same dense work. The candidate firmware
-build completed, but the connected `/dev/cu.J237` port returned no serial data during flashing,
-so the report intentionally leaves physical latency, tensor-arena use, and pipeline FPS pending.
-Notebook 14 will instead rebuild physically narrower dense channels that ESP-NN can exploit.
+![Notebook 13 physical ESP32-CAM comparison](artifacts/pruning/unstructured_magnitude/figures/physical_esp32_comparison.png)
+
+The selected model was compiled, flashed, and measured on the ESP32-CAM with ESP-NN 1.3.2 and
+TFLite Micro 1.4.0. The recorded benchmark used workplace-safe flash-off firmware; the current
+deployment has since re-enabled the same GPIO4 person-state feature. The 416.805 ms Invoke is 8.5% below the saved
+Fast-80 capture, but this is descriptive rather than evidence that dense ESP-NN skipped zeros:
+the profiles were recorded in separate sessions, while shapes, dense MACs, model bytes,
+activations, and arena use are unchanged. A causal sparse speed claim requires repeated
+alternating trials and a compatible sparse representation/kernel. Notebook 14 therefore moves
+to **pattern-based pruning**, the next pruning granularity in the documented sequence.
 
 ## Notebook pipeline
 
@@ -275,7 +285,7 @@ Notebook 14 will instead rebuild physically narrower dense channels that ESP-NN 
 | `10_device_layer_profiling.ipynb` | Analyze every fused operator using real ESP32-CAM timings |
 | `11_model_version_comparison.ipynb` | Compare the 96×96 and 80×80 models across device, compute, memory, and accuracy metrics |
 | `optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb` | Freeze Fast-80 and audit legal pruning units, dependencies, and hardware-realizable granularity |
-| `optimization/pruning/13_unstructured_magnitude_pruning.ipynb` | Sweep global scalar magnitude pruning, recover masks, export INT8, and distinguish sparse theory from dense ESP-NN execution |
+| `optimization/pruning/13_unstructured_magnitude_pruning.ipynb` | Compare one-shot and Han-inspired iterative unstructured magnitude pruning, export INT8, deploy the selected model, and distinguish sparse theory from dense ESP-NN execution |
 
 ## Run the pipeline
 

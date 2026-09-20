@@ -1,0 +1,9 @@
+metric,key,unit,direction,baseline,candidate,candidate_over_baseline
+Model bytes ↓,model_bytes,B,lower,167976.0,167976.0,1.0
+Dense MACs ↓,estimated_macs,MAC,lower,3993536.0,3993536.0,1.0
+Live activation peak ↓,tflite_live_activation_peak_bytes,B,lower,38400.0,38400.0,1.0
+TFLM arena used ↓,arena_used_bytes,B,lower,69068.0,69068.0,1.0
+Internal SRAM free ↑,ready_internal_free_bytes,B,higher,66867.0,66799.0,0.9989830559169695
+Largest SRAM block ↑,ready_internal_largest_bytes,B,higher,61440.0,61440.0,1.0
+Mapped PSRAM free ↑,ready_psram_free_bytes,B,higher,3387184.0,3202860.0,0.9455819347280809
+Invoke mean ↓,mean_us,µs,lower,455546.4,416804.9,0.9149559737493261

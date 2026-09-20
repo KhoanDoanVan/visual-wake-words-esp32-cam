@@ -34,9 +34,9 @@ constexpr int kProfileMeasuredInvocations = 20;
 // GPIO33 drives the small red LED (active-low). GPIO4 drives the large white
 // camera flash (active-high). Both follow the stabilized inference state: red
 // means non-person, while the white flash and blue dashboard mean person.
-// Keep the flash feature compiled but disable its output for workplace-safe
-// profiling. Set this flag back to true when illumination is wanted again.
+// Keep the flash feature gated here so it can be disabled without removing the
+// person-state behavior. It is enabled for the current deployment request.
 constexpr gpio_num_t kNonPersonLedGpio = GPIO_NUM_33;
 constexpr bool kNonPersonLedActiveLow = true;
 constexpr gpio_num_t kFlashLedGpio = GPIO_NUM_4;
-constexpr bool kFlashLedEnabled = false;
+constexpr bool kFlashLedEnabled = true;
