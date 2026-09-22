@@ -33,6 +33,13 @@ The float32 memory row is a graph-level baseline, not a measured TFLite Micro te
 
 The ESP-IDF firmware also includes a device-hosted live camera and inference dashboard. Connect to its `VWW-Camera` Wi-Fi network and open `http://192.168.4.1`; person is blue, non-person is red, and low-light/camera faults are reported explicitly. The dashboard also shows raw score, temporal votes, frame motion, and whether dormant activation is blocked by a static scene. With `kFlashLedEnabled = true`, GPIO4 drives the white flash only while the stabilized inference state is `person`. See [the firmware guide](firmware/esp32_cam_vww/README.md) and [build report](firmware/esp32_cam_vww/BUILD_REPORT.md) for details.
 
+The connected ESP32-S3 rev 0.2 has now been physically profiled with the exact Fast80
+artifact. It has 16 MiB flash, 8 MiB mapped octal PSRAM, and runs batch-one Invoke in
+67.105 ms with an internal arena or 73.478 ms with a PSRAM arena. See the
+[ESP32-S3 capacity report](artifacts/device_profiles/esp32_s3_capacity/DEVICE_CAPACITY_REPORT.md)
+and [ESP32-CAM versus ESP32-S3 comparison](firmware/ESP32_CAM_VS_ESP32_S3_HARDWARE_REPORT.md)
+for the memory, bandwidth, per-layer, numerical-parity, and porting results.
+
 Fast-80 keeps the branch-free, depthwise-separable MobileNetV1 structure used for Visual Wake Words and reduces spatial resolution from 96 to 80. The currently deployed iterative-s50 candidate preserves that topology and input contract while setting 50% of kernel weights to zero. The dataset and camera pipeline remain unchanged: firmware conditions the real OV3660 input with fixed-point chroma reduction and a 256-byte gamma LUT, then uses a motion-gated 2-of-3 activation rule. Run `python scripts/train_fast_vww.py --config configs/fast_80.yaml` only to reproduce the frozen pre-pruning reference.
 
 ## Complete 96x96 versus 80x80 comparison

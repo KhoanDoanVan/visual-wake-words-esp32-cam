@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ESP32-S3 · OV3660 Max Stream</title>
+  <style>
+    :root{color-scheme:dark;--bg:#061016;--panel:#0b1a22;--line:#1c3946;--text:#e9f5f8;--muted:#89a5b1;--cyan:#42d7ff;--green:#47e6a5;--red:#ff6072}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#12313d 0,transparent 32%),var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    main{width:min(1500px,94vw);margin:30px auto 50px}.top{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:22px}.eyebrow{color:var(--cyan);letter-spacing:.22em;font-size:13px}.top h1{font-family:Inter,system-ui,sans-serif;font-size:clamp(32px,5vw,64px);letter-spacing:-.045em;margin:10px 0 0}.connection{display:flex;align-items:center;gap:10px;color:var(--muted)}.dot{width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:0 0 18px currentColor}.dot.live{background:var(--green)}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px}.viewer,.card{background:rgba(11,26,34,.92);border:1px solid var(--line);border-radius:24px;overflow:hidden}.screen{aspect-ratio:4/3;background:#02070a;display:grid;place-items:center;position:relative}.screen img{width:100%;height:100%;object-fit:contain;display:block}.badge{position:absolute;left:18px;top:18px;padding:8px 11px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(0,0,0,.56);backdrop-filter:blur(8px);font-size:12px;letter-spacing:.08em}.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;color:var(--muted)}button,a.button{appearance:none;border:1px solid var(--line);background:#112b36;color:var(--text);padding:10px 14px;border-radius:12px;text-decoration:none;font:inherit;cursor:pointer}.sidebar{display:grid;gap:18px;align-content:start}.card{padding:22px}.card h2{font-family:Inter,system-ui,sans-serif;margin:0 0 18px;font-size:18px}.value{font-family:Inter,system-ui,sans-serif;font-size:36px;font-weight:750;letter-spacing:-.04em}.label{color:var(--muted);font-size:12px;margin-top:5px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}.metric{background:var(--panel);padding:16px 14px;min-height:92px}.metric strong{display:block;font-family:Inter,system-ui,sans-serif;font-size:20px;margin-top:8px}.detail{line-height:1.7;color:var(--muted);font-size:13px}.detail b{color:var(--text)}.safe{color:var(--green)}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.top{align-items:start;flex-direction:column}.sidebar{grid-template-columns:1fr 1fr}.card:last-child{grid-column:1/-1}}@media(max-width:600px){main{width:100%;margin:0}.top{padding:22px}.layout{gap:12px}.viewer,.card{border-radius:0}.sidebar{grid-template-columns:1fr}.card:last-child{grid-column:auto}.bar{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="top"><div><div class="eyebrow">ESP32-S3 · CAMERA DIAGNOSTIC</div><h1>OV3660 Max Stream</h1></div><div class="connection"><span id="dot" class="dot"></span><span id="connection">Connecting…</span></div></header>
+  <section class="layout">
+    <div class="viewer">
+      <div class="screen"><img id="stream" alt="Live OV3660 camera stream"><span class="badge">QXGA · JPEG</span></div>
+      <div class="bar"><span id="frame">Waiting for first frame…</span><a class="button" href="/capture">Download snapshot</a></div>
+    </div>
+    <aside class="sidebar">
+      <div class="card"><h2>Live throughput</h2><div class="value"><span id="fps">—</span> fps</div><div class="label">Camera capture + stream production</div></div>
+      <div class="card"><div class="grid">
+        <div class="metric"><span class="label">Resolution</span><strong id="resolution">—</strong></div>
+        <div class="metric"><span class="label">Capture</span><strong id="latency">—</strong></div>
+        <div class="metric"><span class="label">JPEG size</span><strong id="bytes">—</strong></div>
+        <div class="metric"><span class="label">Sequence</span><strong id="sequence">—</strong></div>
+      </div></div>
+      <div class="card detail"><h2>Device</h2><div><b>Sensor:</b> OV3660</div><div><b>Maximum:</b> 2048 × 1536</div><div><b>PSRAM free:</b> <span id="psram">—</span></div><div><b>Internal free:</b> <span id="internal">—</span></div><div><b>Illumination:</b> <span class="safe">disabled</span></div><div><b>Stream:</b> port 81 MJPEG</div></div>
+    </aside>
+  </section>
+</main>
+<script>
+  const $=id=>document.getElementById(id), host=location.hostname;
+  const stream=$('stream');
+  function connect(){stream.src=`http://${host}:81/stream?t=${Date.now()}`}
+  stream.onerror=()=>setTimeout(connect,1200); connect();
+  const formatBytes=n=>n>1048576?(n/1048576).toFixed(2)+' MB':(n/1024).toFixed(1)+' KB';
+  async function update(){try{const r=await fetch('/status',{cache:'no-store'});if(!r.ok)throw Error();const s=await r.json();$('dot').classList.toggle('live',s.camera_ok);$('connection').textContent=s.camera_ok?'Camera connected':'Camera unavailable';$('fps').textContent=s.fps.toFixed(2);$('resolution').textContent=`${s.width}×${s.height}`;$('latency').textContent=s.capture_ms.toFixed(1)+' ms';$('bytes').textContent=formatBytes(s.jpeg_bytes);$('sequence').textContent=s.sequence;$('psram').textContent=formatBytes(s.psram_free);$('internal').textContent=formatBytes(s.internal_free);$('frame').textContent=`Frame ${s.sequence} · ${formatBytes(s.jpeg_bytes)} · flash disabled`}catch(e){$('dot').classList.remove('live');$('connection').textContent='Connection lost'}}
+  update();setInterval(update,1000);
+</script>
+</body>
+</html>

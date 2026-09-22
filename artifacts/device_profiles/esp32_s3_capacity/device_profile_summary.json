@@ -1,0 +1,109 @@
+{
+  "source_log": "raw_serial.log",
+  "model": {
+    "path": "artifacts/fast_80/models/vww_mobilenetv1_80_int8.tflite",
+    "bytes": 167976,
+    "sha256": "70eb89724ae7f5f84097922e481ba8c61946ef7219fdbeddabc81a612ae7691d"
+  },
+  "firmware": {
+    "path": "artifacts/device_profiles/esp32_s3_capacity/firmware/esp32_s3_capacity_probe.bin",
+    "bytes": 515824,
+    "sha256": "6e600f21464c9f7fa7e0f6b241cbcc98853bda98fec86e98ddc5df22053b8dcc"
+  },
+  "chip": {
+    "model": 9,
+    "revision": 2,
+    "cores": 2,
+    "features": 18,
+    "cpu_hz": 240000000,
+    "idf": "v5.3"
+  },
+  "storage": {
+    "flash_bytes": 16777216,
+    "psram_bytes": 8388608,
+    "flash_mode": "DIO",
+    "flash_mhz": 80,
+    "psram_mode": "OCTAL",
+    "psram_mhz": 80
+  },
+  "models": {
+    "psram": {
+      "placement": "psram",
+      "status": "ready",
+      "model_bytes": 167976,
+      "arena_reserved": 163840,
+      "arena_used": 83420,
+      "input_bytes": 19200,
+      "output_bytes": 1,
+      "input_scale": 1,
+      "input_zero": -128,
+      "output_scale": 0.00390625,
+      "output_zero": -128
+    },
+    "internal": {
+      "placement": "internal",
+      "status": "ready",
+      "model_bytes": 167976,
+      "arena_reserved": 163840,
+      "arena_used": 83420,
+      "input_bytes": 19200,
+      "output_bytes": 1,
+      "input_scale": 1,
+      "input_zero": -128,
+      "output_scale": 0.00390625,
+      "output_zero": -128
+    }
+  },
+  "latency": {
+    "psram": {
+      "placement": "psram",
+      "count": 100,
+      "mean_us": 73477.71,
+      "min_us": 73453,
+      "median_us": 73477,
+      "p95_us": 73494,
+      "max_us": 73510,
+      "output_raw": 15,
+      "output_probability": 0.55859375
+    },
+    "internal": {
+      "placement": "internal",
+      "count": 100,
+      "mean_us": 67104.72,
+      "min_us": 67087,
+      "median_us": 67107,
+      "p95_us": 67119,
+      "max_us": 67133,
+      "output_raw": 15,
+      "output_probability": 0.55859375
+    }
+  },
+  "profile_totals": {
+    "psram": {
+      "count": 20,
+      "total_us": 1470501,
+      "mean_us": 73525.05,
+      "min_us": 73512,
+      "max_us": 73541,
+      "operator_sum_mean_us": 73374.25,
+      "unprofiled_mean_us": 150.8
+    },
+    "internal": {
+      "count": 20,
+      "total_us": 1343274,
+      "mean_us": 67163.7,
+      "min_us": 67147,
+      "max_us": 67183,
+      "operator_sum_mean_us": 67061.95,
+      "unprofiled_mean_us": 101.75
+    }
+  },
+  "derived": {
+    "internal_model_fps": 14.902081403513792,
+    "psram_model_fps": 13.609569487127455,
+    "internal_vs_psram_speedup": 1.0949708157637794,
+    "internal_latency_reduction_percent": 8.673365024576846,
+    "internal_effective_mmac_per_s": 59.51199855986285,
+    "psram_effective_mmac_per_s": 54.350305691345035
+  }
+}
