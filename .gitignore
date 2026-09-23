@@ -65,6 +65,7 @@ events.out.tfevents.*
 
 # Rejected exploratory candidate; its reproducible configuration remains in configs/.
 /artifacts/fast_64/
+/artifacts/high_resolution_teacher_160/
 
 # Device-profile source summaries stay versioned; raw firmware and duplicate plots do not.
 /artifacts/device_profiles/*/firmware/
@@ -90,6 +91,10 @@ events.out.tfevents.*
 /firmware/esp32_s3_camera_stream/managed_components/
 /firmware/esp32_s3_camera_stream/sdkconfig
 /firmware/esp32_s3_camera_stream/sdkconfig.old
+/firmware/esp32_cam_camera_stream/build/
+/firmware/esp32_cam_camera_stream/managed_components/
+/firmware/esp32_cam_camera_stream/sdkconfig
+/firmware/esp32_cam_camera_stream/sdkconfig.old
 compile_commands.json
 *.elf
 *.map

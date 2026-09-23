@@ -1,0 +1,60 @@
+project:
+  name: visual-wake-words-high-resolution-teacher-160
+  seed: 42
+
+paths:
+  processed: data/processed
+  artifacts: artifacts/high_resolution_teacher_160
+
+data:
+  dataset: MS COCO 2017
+  manifest: data/processed/manifest.csv
+  # Keep the frozen labels for an apples-to-apples resolution experiment.
+  min_person_area_fraction: 0.005
+
+preprocessing:
+  image_size: [160, 160]
+  channels: 3
+  geometry: letterbox
+  resize_method: bilinear
+  antialias: true
+  batch_size: 32
+  cache: false
+
+model:
+  architecture: mobilenet_v1_teacher
+  width_multiplier: 0.5
+  imagenet_initialization: true
+  dropout: 0.2
+  l2: 0.00001
+
+augmentation:
+  horizontal_flip: true
+  translation_fraction: 0.05
+  brightness_delta: 0.18
+  contrast_factor: 0.30
+  saturation_factor: 0.45
+  sensor_noise_stddev: 0.025
+
+training:
+  frozen_backbone_epochs: 8
+  frozen_backbone_learning_rate: 0.0003
+  fine_tune_epochs: 20
+  fine_tune_learning_rate: 0.00003
+  fine_tune_last_layers: 30
+  label_smoothing: 0.03
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+  bootstrap_samples: 500
+
+teacher_gate:
+  minimum_pr_auc_gain_vs_baseline: 0.02
+  minimum_f1_gain_vs_baseline: 0.01
+  maximum_specificity_drop: 0.01
