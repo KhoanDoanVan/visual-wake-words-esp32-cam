@@ -1,0 +1,7 @@
+experiment,split,samples,positive_fraction
+subset teacher,test,2000,0.4905
+subset teacher,train,12000,0.5
+subset teacher,val,2000,0.4945
+targeted-36k teacher,test,2000,0.4905
+targeted-36k teacher,train,36000,0.5
+targeted-36k teacher,val,2000,0.4945

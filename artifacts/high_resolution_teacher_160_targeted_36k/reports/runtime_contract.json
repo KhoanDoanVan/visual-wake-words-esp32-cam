@@ -1,0 +1,12 @@
+{
+  "config_sha256": "dff1f41738e651876578dc04c81b1740b20fe27a377bc7d5a569025d744e5734",
+  "manifest_sha256": "cc136c642e8aeaa04b47f2de6db811a6537e20a3b91e5b983da096f05fa4c1cc",
+  "python": "3.10.13",
+  "tensorflow": "2.20.0",
+  "seed": 42,
+  "image_size": [
+    160,
+    160
+  ],
+  "geometry": "letterbox"
+}

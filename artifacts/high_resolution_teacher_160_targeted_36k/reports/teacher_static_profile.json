@@ -1,0 +1,21 @@
+{
+  "model_name": "vww_teacher_mobilenetv1_160_a050_targeted_36k",
+  "layers": 91,
+  "parameters": 830049,
+  "trainable_parameters": 819105,
+  "non_trainable_parameters": 10944,
+  "float32_weight_bytes": 3320196,
+  "global_weight_sparsity": 1.204748153422268e-06,
+  "global_weight_near_zero_fraction": 0.001862540645190826,
+  "global_kernel_sparsity": 0.0,
+  "global_kernel_near_zero_fraction": 0.0018647297564838646,
+  "estimated_macs_batch1": 76013312,
+  "peak_live_activation_float32_bytes_batch1": 1659008,
+  "peak_live_activation_int8_bytes_batch1_hypothetical": 414752,
+  "peak_live_activation_layer": "conv_pad_2",
+  "float32_inference_structural_bytes": 4979204,
+  "training_batch_size_for_estimate": 32,
+  "training_structural_bytes_estimate": 588584336,
+  "near_zero_threshold": 1e-06,
+  "memory_estimate_scope": "Static graph estimate, not an ESP32 SRAM or tensor-arena measurement. Weights and activations may occupy different memory regions; fusion, in-place reuse, kernel workspace, allocator fragmentation, and runtime overhead are not modeled."
+}
