@@ -1,0 +1,21 @@
+{
+  "model_name": "vww_student_120_a025_response_kd",
+  "layers": 92,
+  "parameters": 218801,
+  "trainable_parameters": 213329,
+  "non_trainable_parameters": 5472,
+  "float32_weight_bytes": 875204,
+  "global_weight_sparsity": 4.570363023934991e-06,
+  "global_weight_near_zero_fraction": 0.004122467447589362,
+  "global_kernel_sparsity": 0.0,
+  "global_kernel_near_zero_fraction": 0.004137479793703333,
+  "estimated_macs_batch1": 10487648,
+  "peak_live_activation_float32_bytes_batch1": 468544,
+  "peak_live_activation_int8_bytes_batch1_hypothetical": 117136,
+  "peak_live_activation_layer": "conv_pad_2",
+  "float32_inference_structural_bytes": 1343748,
+  "training_batch_size_for_estimate": 32,
+  "training_structural_bytes_estimate": 167883664,
+  "near_zero_threshold": 1e-06,
+  "memory_estimate_scope": "Static graph estimate, not an ESP32 SRAM or tensor-arena measurement. Weights and activations may occupy different memory regions; fusion, in-place reuse, kernel workspace, allocator fragmentation, and runtime overhead are not modeled."
+}

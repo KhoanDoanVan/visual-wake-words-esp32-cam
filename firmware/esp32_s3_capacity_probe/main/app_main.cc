@@ -22,7 +22,17 @@
 
 namespace {
 constexpr char kTag[] = "s3_capacity";
-constexpr size_t kArenaBytes = 160 * 1024;
+#ifndef VWW_INPUT_SIZE
+#define VWW_INPUT_SIZE 80
+#endif
+#ifndef VWW_MODEL_VARIANT
+#define VWW_MODEL_VARIANT "fast_80"
+#endif
+#ifndef VWW_ARENA_BYTES
+#define VWW_ARENA_BYTES (160 * 1024)
+#endif
+constexpr int kInputSize = VWW_INPUT_SIZE;
+constexpr size_t kArenaBytes = VWW_ARENA_BYTES;
 constexpr int kProfileWarmup = 2;
 constexpr int kProfileSamples = 20;
 constexpr int kLatencyWarmup = 5;
@@ -66,9 +76,10 @@ class OperatorProfiler final : public tflite::MicroProfilerInterface {
   bool Ready() const { return measured_ == kProfileSamples; }
   void Report(size_t arena_used) const {
     ESP_LOGI(kTag,
-             "VWW_PROFILE,BEGIN,variant=fast_80_s3_%s,input=80x80x3,batch=1,samples=%u,"
+             "VWW_PROFILE,BEGIN,variant=%s_s3_%s,input=%dx%dx3,batch=1,samples=%u,"
              "warmup=%d,arena_used_bytes=%u",
-             placement_, static_cast<unsigned>(measured_), kProfileWarmup,
+             VWW_MODEL_VARIANT, placement_, kInputSize, kInputSize,
+             static_cast<unsigned>(measured_), kProfileWarmup,
              static_cast<unsigned>(arena_used));
     uint64_t operator_total = 0;
     for (uint32_t index = 0; index < std::min(op_count_, kMaxOps); ++index) {
@@ -169,10 +180,10 @@ void BenchmarkCopy(const char* direction, uint32_t source_caps, uint32_t destina
 bool ValidateContract(TfLiteTensor* input, const TfLiteTensor* output) {
   const bool valid = input != nullptr && output != nullptr && input->type == kTfLiteInt8 &&
                      output->type == kTfLiteInt8 && input->dims->size == 4 &&
-                     input->dims->data[0] == 1 && input->dims->data[1] == 80 &&
-                     input->dims->data[2] == 80 && input->dims->data[3] == 3 &&
+                     input->dims->data[0] == 1 && input->dims->data[1] == kInputSize &&
+                     input->dims->data[2] == kInputSize && input->dims->data[3] == 3 &&
                      output->bytes == 1;
-  if (!valid) ESP_LOGE(kTag, "Fast80 tensor contract mismatch");
+  if (!valid) ESP_LOGE(kTag, "%s tensor contract mismatch", VWW_MODEL_VARIANT);
   return valid;
 }
 
@@ -221,6 +232,9 @@ void ProfileModel(const tflite::Model* model, tflite::MicroOpResolver& resolver,
         return;
       }
       profiler.EndInference();
+      // Profiling a large graph can occupy CPU0 for several seconds. Yield
+      // outside the measured interval so IDLE0 can feed the task watchdog.
+      vTaskDelay(pdMS_TO_TICKS(1));
     }
     if (profiler.Ready()) profiler.Report(interpreter.arena_used_bytes());
 
@@ -272,6 +286,30 @@ extern "C" void app_main(void) {
            static_cast<unsigned>(flash_bytes), static_cast<unsigned>(esp_psram_get_size()));
   LogAllMemory("boot");
 
+  const tflite::Model* model = tflite::GetModel(g_vww_model_data);
+  if (model->version() != TFLITE_SCHEMA_VERSION) {
+    ESP_LOGE(kTag, "TFLite schema mismatch: model=%lu runtime=%d",
+             static_cast<unsigned long>(model->version()), TFLITE_SCHEMA_VERSION);
+    return;
+  }
+  tflite::MicroMutableOpResolver<9> resolver;
+  resolver.AddAdd();
+  resolver.AddConv2D();
+  resolver.AddDepthwiseConv2D();
+  resolver.AddMean();
+  resolver.AddMul();
+  resolver.AddFullyConnected();
+  resolver.AddLogistic();
+  resolver.AddPad();
+  resolver.AddReshape();
+
+  // Profile internal SRAM before copy benchmarks fragment the largest internal
+  // block. The PSRAM run follows with the identical model and deterministic input.
+  ProfileModel(model, resolver, "internal", MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT,
+               g_internal_profiler);
+  ProfileModel(model, resolver, "psram", MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT,
+               g_psram_profiler);
+
   BenchmarkCopy("internal_to_internal", MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT,
                 MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT, 32 * 1024, 256);
   BenchmarkCopy("psram_to_psram", MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT,
@@ -280,27 +318,6 @@ extern "C" void app_main(void) {
                 MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, 32 * 1024, 256);
   BenchmarkCopy("psram_to_internal", MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT,
                 MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT, 32 * 1024, 256);
-
-  const tflite::Model* model = tflite::GetModel(g_vww_model_data);
-  if (model->version() != TFLITE_SCHEMA_VERSION) {
-    ESP_LOGE(kTag, "TFLite schema mismatch: model=%lu runtime=%d",
-             static_cast<unsigned long>(model->version()), TFLITE_SCHEMA_VERSION);
-    return;
-  }
-  tflite::MicroMutableOpResolver<8> resolver;
-  resolver.AddAdd();
-  resolver.AddConv2D();
-  resolver.AddDepthwiseConv2D();
-  resolver.AddMean();
-  resolver.AddMul();
-  resolver.AddFullyConnected();
-  resolver.AddLogistic();
-  resolver.AddReshape();
-
-  ProfileModel(model, resolver, "psram", MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT,
-               g_psram_profiler);
-  ProfileModel(model, resolver, "internal", MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT,
-               g_internal_profiler);
   LogAllMemory("complete");
   ESP_LOGI(kTag, "S3_CAPACITY,END");
   while (true) vTaskDelay(pdMS_TO_TICKS(10000));

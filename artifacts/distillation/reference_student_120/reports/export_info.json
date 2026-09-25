@@ -1,0 +1,35 @@
+{
+  "size_bytes": 304296,
+  "input": {
+    "name": "serving_default_image:0",
+    "shape": [
+      1,
+      120,
+      120,
+      3
+    ],
+    "dtype": "int8",
+    "scale": 1.0,
+    "zero_point": -128
+  },
+  "output": {
+    "name": "StatefulPartitionedCall_1:0",
+    "shape": [
+      1,
+      1
+    ],
+    "dtype": "int8",
+    "scale": 0.00390625,
+    "zero_point": -128
+  },
+  "operators": [
+    "ADD",
+    "CONV_2D",
+    "DEPTHWISE_CONV_2D",
+    "FULLY_CONNECTED",
+    "LOGISTIC",
+    "MEAN",
+    "MUL",
+    "PAD"
+  ]
+}

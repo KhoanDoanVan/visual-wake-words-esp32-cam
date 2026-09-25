@@ -1,0 +1,120 @@
+{
+  "experiment": "student_120_hard_control",
+  "runtime_contract": {
+    "config_sha256": "49b8968e1c997a2754df41d46c2fd3c43e2c1a40108f72f9a71694a044c27c1a",
+    "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "teacher_model_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+    "teacher_targets_sha256": "1bdf01ac3479958836875171895ef61c48edb05b360dd9902b6a939f001fcfc3",
+    "python": "3.10.13",
+    "tensorflow": "2.20.0",
+    "seed": 42,
+    "teacher_input": [
+      160,
+      160,
+      3
+    ],
+    "student_input": [
+      120,
+      120,
+      3
+    ],
+    "geometry": "letterbox",
+    "teacher_antialias": true,
+    "student_antialias": false,
+    "control_uses_teacher_loss": false
+  },
+  "teacher_audit": {
+    "approved": true,
+    "rows": 16000,
+    "test_f1": 0.8463528194516295,
+    "test_pr_auc": 0.9304756816465961,
+    "validation_threshold": 0.365
+  },
+  "float_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.31,
+    "accuracy": 0.738,
+    "precision": 0.7031111111111111,
+    "recall": 0.8063200815494393,
+    "f1": 0.7511870845204178,
+    "roc_auc": 0.8318422950685197,
+    "pr_auc": 0.840623373370087,
+    "specificity": 0.6722276741903828,
+    "confusion_matrix": [
+      [
+        685,
+        334
+      ],
+      [
+        190,
+        791
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.5625,
+    "ece_10": 0.06109668425098061
+  },
+  "int8_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.275,
+    "accuracy": 0.736,
+    "precision": 0.6937553464499572,
+    "recall": 0.8267074413863404,
+    "f1": 0.7544186046511628,
+    "roc_auc": 0.8272136241183067,
+    "pr_auc": 0.8352648680090284,
+    "specificity": 0.6486751717369971,
+    "confusion_matrix": [
+      [
+        661,
+        358
+      ],
+      [
+        170,
+        811
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.5845
+  },
+  "parity": {
+    "probability_mae": 0.036312966644763946,
+    "f1_delta": 0.0032315201307450137,
+    "pr_auc_delta": -0.00535850536105853
+  },
+  "static_profile": {
+    "model_name": "vww_student_120_a025_control",
+    "layers": 92,
+    "parameters": 218801,
+    "trainable_parameters": 213329,
+    "non_trainable_parameters": 5472,
+    "float32_weight_bytes": 875204,
+    "global_weight_sparsity": 4.570363023934991e-06,
+    "global_weight_near_zero_fraction": 0.004122467447589362,
+    "global_kernel_sparsity": 0.0,
+    "global_kernel_near_zero_fraction": 0.004137479793703333,
+    "estimated_macs_batch1": 10487648,
+    "peak_live_activation_float32_bytes_batch1": 468544,
+    "peak_live_activation_int8_bytes_batch1_hypothetical": 117136,
+    "peak_live_activation_layer": "conv_pad_2",
+    "float32_inference_structural_bytes": 1343748,
+    "training_batch_size_for_estimate": 32,
+    "training_structural_bytes_estimate": 167883664,
+    "near_zero_threshold": 1e-06,
+    "memory_estimate_scope": "Static graph estimate, not an ESP32 SRAM or tensor-arena measurement. Weights and activations may occupy different memory regions; fusion, in-place reuse, kernel workspace, allocator fragmentation, and runtime overhead are not modeled."
+  },
+  "headroom": {
+    "teacher_correct_student_wrong": 310,
+    "student_correct_teacher_wrong": 83,
+    "probability_mae": 0.1649608573237339
+  },
+  "gates": {
+    "teacher_cache_valid": true,
+    "integer_only": true,
+    "parity_mae": false,
+    "int8_f1_retained": true,
+    "device_profile_complete": false
+  },
+  "ready_for_response_kd": true,
+  "ready_for_int8_deployment": false
+}

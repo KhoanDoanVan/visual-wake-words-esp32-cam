@@ -1,0 +1,166 @@
+{
+  "experiment": "vww-response-kd-student-120",
+  "paper_anchor": {
+    "temperature": 4.0,
+    "teacher_loss_weight": 0.5
+  },
+  "runtime_contract": {
+    "experiment": "vww-response-kd-student-120",
+    "config_sha256": "a9dee2517276e983cbea4dedcb751cb537c721bfb8bd27bdbc5de2285f1a3b0c",
+    "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "teacher_model_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+    "teacher_targets_sha256": "1bdf01ac3479958836875171895ef61c48edb05b360dd9902b6a939f001fcfc3",
+    "control_model_sha256": "a85a696243a020aec132d11ecf0f218203066e4259f2e1f53e835e8df95e6c57",
+    "control_summary_sha256": "30387ee95cac5c7ff884eaaef0ad63b85cbf2b9a8544227b339329d9809c3abe",
+    "paper_sha256": {
+      "hinton_2015": "74e6689115c539db499f9d6153edecb364059926fd45402454f8210442444c5a",
+      "micronets_2021": "59f06bd884a57e3e05bc7c59d189446fe36a8724948c2b86e4935363519fd490"
+    },
+    "python": "3.10.13",
+    "tensorflow": "2.20.0",
+    "seed": 42,
+    "teacher_input": [
+      160,
+      160,
+      3
+    ],
+    "student_input": [
+      120,
+      120,
+      3
+    ],
+    "temperature": 4.0,
+    "teacher_loss_weight": 0.5,
+    "temperature_squared_scaling": true,
+    "inference_temperature": 1.0
+  },
+  "initialization_sha256": "bfa23c133c71af3ca0ffa97488571f2cd66e93001d24a0a5bd6504d8a9310895",
+  "float_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.255,
+    "accuracy": 0.716,
+    "precision": 0.6682966585167074,
+    "recall": 0.835881753312946,
+    "f1": 0.7427536231884058,
+    "roc_auc": 0.828326025695276,
+    "pr_auc": 0.8398222576270201,
+    "specificity": 0.6005888125613347,
+    "confusion_matrix": [
+      [
+        612,
+        407
+      ],
+      [
+        161,
+        820
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.6135,
+    "ece_10": 0.057713412031531325
+  },
+  "control_test_metrics_recomputed": {
+    "samples": 2000,
+    "threshold": 0.31,
+    "accuracy": 0.738,
+    "precision": 0.7031111111111111,
+    "recall": 0.8063200815494393,
+    "f1": 0.7511870845204178,
+    "roc_auc": 0.8318422950685197,
+    "pr_auc": 0.840623373370087,
+    "specificity": 0.6722276741903828,
+    "confusion_matrix": [
+      [
+        685,
+        334
+      ],
+      [
+        190,
+        791
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.5625,
+    "ece_10": 0.06109668425098061
+  },
+  "int8_test_metrics": {
+    "samples": 2000,
+    "threshold": 0.24500000000000002,
+    "accuracy": 0.7115,
+    "precision": 0.6666666666666666,
+    "recall": 0.8236493374108053,
+    "f1": 0.736890104879161,
+    "roc_auc": 0.8249628115749785,
+    "pr_auc": 0.8347967813091313,
+    "specificity": 0.6035328753680078,
+    "confusion_matrix": [
+      [
+        615,
+        404
+      ],
+      [
+        173,
+        808
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.606,
+    "ece_10": 0.07221289062499998
+  },
+  "quality_delta": {
+    "pr_auc": -0.0008011157430668492,
+    "f1": -0.00843346133201206,
+    "accuracy": -0.02200000000000002
+  },
+  "float_to_int8_parity": {
+    "probability_mae": 0.03555538346292451,
+    "f1_delta": -0.0058635183092448084,
+    "pr_auc_delta": -0.005025476317888855
+  },
+  "static_profile": {
+    "model_name": "vww_student_120_a025_response_kd",
+    "layers": 92,
+    "parameters": 218801,
+    "trainable_parameters": 213329,
+    "non_trainable_parameters": 5472,
+    "float32_weight_bytes": 875204,
+    "global_weight_sparsity": 4.570363023934991e-06,
+    "global_weight_near_zero_fraction": 0.004122467447589362,
+    "global_kernel_sparsity": 0.0,
+    "global_kernel_near_zero_fraction": 0.004137479793703333,
+    "estimated_macs_batch1": 10487648,
+    "peak_live_activation_float32_bytes_batch1": 468544,
+    "peak_live_activation_int8_bytes_batch1_hypothetical": 117136,
+    "peak_live_activation_layer": "conv_pad_2",
+    "float32_inference_structural_bytes": 1343748,
+    "training_batch_size_for_estimate": 32,
+    "training_structural_bytes_estimate": 167883664,
+    "near_zero_threshold": 1e-06,
+    "memory_estimate_scope": "Static graph estimate, not an ESP32 SRAM or tensor-arena measurement. Weights and activations may occupy different memory regions; fusion, in-place reuse, kernel workspace, allocator fragmentation, and runtime overhead are not modeled."
+  },
+  "graph_identity": {
+    "parameters_equal": true,
+    "macs_equal": true,
+    "peak_activation_estimate_equal": true,
+    "operator_set_equal": true,
+    "control_tflite_bytes": 304296,
+    "kd_tflite_bytes": 305576
+  },
+  "distillation_diagnostic": {
+    "teacher_correct_control_wrong": 310,
+    "teacher_correct_kd_wrong": 359,
+    "kd_fixed_control": 63,
+    "kd_broke_control": 107,
+    "kd_teacher_probability_mae": 0.155312091837073,
+    "control_teacher_probability_mae": 0.1649608573237339
+  },
+  "gates": {
+    "float_pr_auc_gain": false,
+    "float_f1_retained": false,
+    "static_graph_identity": true,
+    "int8_probability_parity": false,
+    "int8_f1_retained": true,
+    "physical_device_profile_complete": false
+  },
+  "accepted_for_next_distillation_stage": false
+}

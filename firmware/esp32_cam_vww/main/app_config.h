@@ -6,7 +6,10 @@
 // paper-inspired iterative-s50 INT8 model. Keep the real-camera transform in
 // app_main.cc unchanged. A later labelled OV3660 capture can refine this value
 // for the camera domain without retraining or changing the model artifact.
-constexpr float kPersonThreshold = 0.47f;
+#ifndef VWW_PERSON_THRESHOLD
+#define VWW_PERSON_THRESHOLD 0.47f
+#endif
+constexpr float kPersonThreshold = VWW_PERSON_THRESHOLD;
 
 // Use a short 2-of-3 temporal vote. At the measured ~1.7 fps this confirms or
 // clears a state in roughly 0.6-1.2 seconds while still rejecting an isolated
@@ -35,8 +38,12 @@ constexpr int kProfileMeasuredInvocations = 20;
 // camera flash (active-high). Both follow the stabilized inference state: red
 // means non-person, while the white flash and blue dashboard mean person.
 // Keep the flash feature gated here so it can be disabled without removing the
-// person-state behavior. It is enabled for the current deployment request.
+// person-state behavior. Device profiling must never change scene illumination,
+// so the workplace-safe deployment forces GPIO4 low.
 constexpr gpio_num_t kNonPersonLedGpio = GPIO_NUM_33;
 constexpr bool kNonPersonLedActiveLow = true;
 constexpr gpio_num_t kFlashLedGpio = GPIO_NUM_4;
-constexpr bool kFlashLedEnabled = true;
+#ifndef VWW_FLASH_LED_ENABLED
+#define VWW_FLASH_LED_ENABLED 0
+#endif
+constexpr bool kFlashLedEnabled = VWW_FLASH_LED_ENABLED != 0;

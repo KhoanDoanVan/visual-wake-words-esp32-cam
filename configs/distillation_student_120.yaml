@@ -1,0 +1,72 @@
+project:
+  name: vww-distillation-student-control-120
+  seed: 42
+
+paths:
+  manifest: data/processed/manifest.csv
+  teacher_model: artifacts/high_resolution_teacher_160/models/teacher_160.keras
+  teacher_targets: artifacts/high_resolution_teacher_160/teacher_distillation_targets.csv
+  teacher_summary: artifacts/high_resolution_teacher_160/reports/experiment_summary.json
+  artifacts: artifacts/distillation/reference_student_120
+
+data:
+  dataset: MS COCO 2017
+  min_person_area_fraction: 0.005
+
+teacher:
+  architecture: MobileNetV1
+  width_multiplier: 0.5
+  image_size: [160, 160]
+  channels: 3
+
+student:
+  architecture: MobileNetV1
+  width_multiplier: 0.25
+  image_size: [120, 120]
+  channels: 3
+  imagenet_initialization: true
+  dropout: 0.1
+  l2: 0.00001
+
+preprocessing:
+  geometry: letterbox
+  resize_method: bilinear
+  teacher_antialias: true
+  student_antialias: false
+  batch_size: 32
+  cache: false
+
+augmentation:
+  horizontal_flip: true
+  translation_fraction: 0.05
+  brightness_delta: 0.18
+  contrast_factor: 0.30
+  saturation_factor: 0.45
+  sensor_noise_stddev: 0.025
+
+training:
+  head_epochs: 8
+  head_learning_rate: 0.0003
+  fine_tune_epochs: 20
+  fine_tune_learning_rate: 0.00003
+  fine_tune_last_layers: 30
+  label_smoothing: 0.03
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+  calibration_bins: 10
+
+export:
+  representative_samples: 500
+  model_filename: student_120_hard_control_int8.tflite
+
+control_gate:
+  require_teacher_artifact_match: true
+  maximum_float_to_int8_probability_mae: 0.03
+  maximum_int8_f1_drop: 0.03

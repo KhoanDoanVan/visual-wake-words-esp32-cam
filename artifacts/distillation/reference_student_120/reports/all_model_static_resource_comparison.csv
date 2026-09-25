@@ -1,0 +1,6 @@
+model,input,parameters,macs,peak_live_int8_est_bytes,tflite_bytes,evidence
+Teacher-160 float,160x160x3,830049,76013312,414752,,static estimate; training-only teacher
+Student-120 INT8,120x120x3,218801,10487648,117136,304296.0,static estimate + exported flatbuffer
+Baseline-96 INT8,96x96x3,111793,5616256,73728,167976.0,static estimate + exported flatbuffer
+Fast-80 INT8,80x80x3,111793,3993536,51200,167976.0,static estimate + exported flatbuffer
+Pruned-S50 INT8,80x80x3,111793,3993536,51200,167976.0,unstructured zeros; dense ESP-NN graph cost unchanged

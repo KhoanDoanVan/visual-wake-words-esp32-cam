@@ -60,6 +60,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--firmware", type=Path, required=True)
+    parser.add_argument("--macs", type=int, default=3_993_536)
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -80,6 +81,7 @@ def main() -> None:
         "models": {},
         "latency": {},
         "profile_totals": {},
+        "estimated_macs": args.macs,
     }
     memories: list[dict[str, object]] = []
     bandwidth: list[dict[str, object]] = []
@@ -128,8 +130,8 @@ def main() -> None:
             "psram_model_fps": 1_000_000.0 / psram,
             "internal_vs_psram_speedup": psram / internal,
             "internal_latency_reduction_percent": 100.0 * (psram - internal) / psram,
-            "internal_effective_mmac_per_s": 3.993536 / (internal / 1_000_000.0),
-            "psram_effective_mmac_per_s": 3.993536 / (psram / 1_000_000.0),
+            "internal_effective_mmac_per_s": (args.macs / 1_000_000.0) / (internal / 1_000_000.0),
+            "psram_effective_mmac_per_s": (args.macs / 1_000_000.0) / (psram / 1_000_000.0),
         }
 
     (args.output_dir / "device_profile_summary.json").write_text(

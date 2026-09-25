@@ -50,7 +50,7 @@ def test_real_camera_preprocessing_is_fixed_point_and_buffer_free():
     resize_body = app.split("bool ResizeFrameToInt8", 1)[1].split(
         "bool ConfigureCameraSensor", 1
     )[0]
-    assert "kPersonThreshold = 0.47f" in config
+    assert "kPersonThreshold = VWW_PERSON_THRESHOLD" in config
     assert "kGamma12Lut" in resize_body
     assert "77 * rgb[0] + 150 * rgb[1] + 29 * rgb[2]" in resize_body
     assert "(luma + rgb[channel] + 1) >> 1" in resize_body
@@ -66,7 +66,7 @@ def test_static_background_cannot_activate_visual_wake_word():
     assert "std::memcpy(previous_input, input->data.int8, kInputBytes)" in app
 
 
-def test_flash_feature_follows_the_stabilized_person_state_when_enabled():
+def test_flash_feature_is_compile_time_gated_and_defaults_off_for_profiling():
     config = (ROOT / "firmware/esp32_cam_vww/main/app_config.h").read_text()
     app = (ROOT / "firmware/esp32_cam_vww/main/app_main.cc").read_text()
     initialize_body = app.split("bool InitializeInferenceIndicators", 1)[1].split(
@@ -78,7 +78,8 @@ def test_flash_feature_follows_the_stabilized_person_state_when_enabled():
     inference_body = app.split("const bool raw_person", 1)[1].split(
         "CommitWebFrameStatus", 1
     )[0]
-    assert "kFlashLedEnabled = true" in config
+    assert "#define VWW_FLASH_LED_ENABLED 0" in config
+    assert "kFlashLedEnabled = VWW_FLASH_LED_ENABLED != 0" in config
     assert "SetLed(kFlashLedGpio, false, false)" in initialize_body
     assert (
         "SetLed(kFlashLedGpio, false, kFlashLedEnabled && person_detected)"

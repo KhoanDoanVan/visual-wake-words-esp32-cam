@@ -2,6 +2,11 @@
 
 Notebook-first pipeline for training a **person / no-person** Visual Wake Word model on real MS COCO 2017 images and exporting it as a full-INT8 TensorFlow Lite Micro model for an AI-Thinker ESP32-CAM.
 
+The next optimization phase is documented in the
+[knowledge-distillation research and experiment plan](optimization/distillation/DISTILLATION_TECHNIQUES_PLAN.md).
+It freezes the 160x160 teacher and 120x120 student contracts, reviews the principal distillation
+papers, and defines the notebook sequence from hard-label control through physical ESP32 profiling.
+
 > Fast-80 is the frozen pre-pruning reference. It has been trained, exported, compiled, flashed, and smoke-tested on the connected board.
 > The board currently runs Notebook 13's `paper_iterative__s50` INT8 candidate at threshold 0.47 with the GPIO4 white flash enabled for stabilized person detection.
 

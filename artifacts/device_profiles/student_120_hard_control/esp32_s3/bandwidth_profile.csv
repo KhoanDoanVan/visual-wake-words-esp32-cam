@@ -1,0 +1,5 @@
+direction,bytes,iterations,elapsed_us,mib_s,checksum
+internal_to_internal,32768,256,22016,363.372,7
+psram_to_psram,262144,128,1502353,21.3,7
+internal_to_psram,32768,256,22288,358.938,7
+psram_to_internal,32768,256,22287,358.954,7

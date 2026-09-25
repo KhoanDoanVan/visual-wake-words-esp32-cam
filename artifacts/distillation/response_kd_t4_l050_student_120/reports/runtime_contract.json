@@ -1,0 +1,30 @@
+{
+  "experiment": "vww-response-kd-student-120",
+  "config_sha256": "a9dee2517276e983cbea4dedcb751cb537c721bfb8bd27bdbc5de2285f1a3b0c",
+  "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+  "teacher_model_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+  "teacher_targets_sha256": "1bdf01ac3479958836875171895ef61c48edb05b360dd9902b6a939f001fcfc3",
+  "control_model_sha256": "a85a696243a020aec132d11ecf0f218203066e4259f2e1f53e835e8df95e6c57",
+  "control_summary_sha256": "30387ee95cac5c7ff884eaaef0ad63b85cbf2b9a8544227b339329d9809c3abe",
+  "paper_sha256": {
+    "hinton_2015": "74e6689115c539db499f9d6153edecb364059926fd45402454f8210442444c5a",
+    "micronets_2021": "59f06bd884a57e3e05bc7c59d189446fe36a8724948c2b86e4935363519fd490"
+  },
+  "python": "3.10.13",
+  "tensorflow": "2.20.0",
+  "seed": 42,
+  "teacher_input": [
+    160,
+    160,
+    3
+  ],
+  "student_input": [
+    120,
+    120,
+    3
+  ],
+  "temperature": 4.0,
+  "teacher_loss_weight": 0.5,
+  "temperature_squared_scaling": true,
+  "inference_temperature": 1.0
+}

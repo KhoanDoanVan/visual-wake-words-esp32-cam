@@ -1,0 +1,3 @@
+model,parameters,macs,peak_live_int8_estimate_bytes,tflite_bytes,physical_latency
+Hard control,218801,10487648,117136,304296,measured previously
+Response KD,218801,10487648,117136,305576,pending exact artifact

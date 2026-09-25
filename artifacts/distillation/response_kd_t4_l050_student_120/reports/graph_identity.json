@@ -1,0 +1,8 @@
+{
+  "parameters_equal": true,
+  "macs_equal": true,
+  "peak_activation_estimate_equal": true,
+  "operator_set_equal": true,
+  "control_tflite_bytes": 304296,
+  "kd_tflite_bytes": 305576
+}

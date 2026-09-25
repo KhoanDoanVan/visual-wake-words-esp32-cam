@@ -1,0 +1,110 @@
+{
+  "source_log": "raw_serial.log",
+  "model": {
+    "path": "artifacts/distillation/reference_student_120/models/student_120_hard_control_int8.tflite",
+    "bytes": 304296,
+    "sha256": "99b30524db595e90a939274bfac66977694375657bbaeb84217fcdf2e9b13dc0"
+  },
+  "firmware": {
+    "path": "/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/artifacts/device_profiles/student_120_hard_control/esp32_s3/firmware/esp32_s3_capacity_probe.bin",
+    "bytes": 662000,
+    "sha256": "a2957234e93c8ec6c547b44b783a506bbdd1dc0697398a5b46e7f79403c7416f"
+  },
+  "chip": {
+    "model": 9,
+    "revision": 2,
+    "cores": 2,
+    "features": 18,
+    "cpu_hz": 240000000,
+    "idf": "v5.3"
+  },
+  "storage": {
+    "flash_bytes": 16777216,
+    "psram_bytes": 8388608,
+    "flash_mode": "DIO",
+    "flash_mhz": 80,
+    "psram_mode": "OCTAL",
+    "psram_mhz": 80
+  },
+  "models": {
+    "internal": {
+      "placement": "internal",
+      "status": "ready",
+      "model_bytes": 304296,
+      "arena_reserved": 245760,
+      "arena_used": 159212,
+      "input_bytes": 43200,
+      "output_bytes": 1,
+      "input_scale": 1,
+      "input_zero": -128,
+      "output_scale": 0.00390625,
+      "output_zero": -128
+    },
+    "psram": {
+      "placement": "psram",
+      "status": "ready",
+      "model_bytes": 304296,
+      "arena_reserved": 245760,
+      "arena_used": 159212,
+      "input_bytes": 43200,
+      "output_bytes": 1,
+      "input_scale": 1,
+      "input_zero": -128,
+      "output_scale": 0.00390625,
+      "output_zero": -128
+    }
+  },
+  "latency": {
+    "internal": {
+      "placement": "internal",
+      "count": 100,
+      "mean_us": 150906.29,
+      "min_us": 150886,
+      "median_us": 150911,
+      "p95_us": 150923,
+      "max_us": 150929,
+      "output_raw": -67,
+      "output_probability": 0.23828125
+    },
+    "psram": {
+      "placement": "psram",
+      "count": 100,
+      "mean_us": 176005.49,
+      "min_us": 175979,
+      "median_us": 176005,
+      "p95_us": 176023,
+      "max_us": 176026,
+      "output_raw": -67,
+      "output_probability": 0.23828125
+    }
+  },
+  "profile_totals": {
+    "internal": {
+      "count": 20,
+      "total_us": 3019426,
+      "mean_us": 150971.3,
+      "min_us": 150938,
+      "max_us": 150999,
+      "operator_sum_mean_us": 150815.55,
+      "unprofiled_mean_us": 155.75
+    },
+    "psram": {
+      "count": 20,
+      "total_us": 3521047,
+      "mean_us": 176052.35,
+      "min_us": 176014,
+      "max_us": 176090,
+      "operator_sum_mean_us": 175831.0,
+      "unprofiled_mean_us": 221.35
+    }
+  },
+  "estimated_macs": 10487648,
+  "derived": {
+    "internal_model_fps": 6.626629015927699,
+    "psram_model_fps": 5.681640953358898,
+    "internal_vs_psram_speedup": 1.1663230869965724,
+    "internal_latency_reduction_percent": 14.260464261654555,
+    "internal_effective_mmac_per_s": 69.4977525456361,
+    "psram_effective_mmac_per_s": 59.58705038121254
+  }
+}

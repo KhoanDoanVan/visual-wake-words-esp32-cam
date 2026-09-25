@@ -53,7 +53,9 @@ pushd "$STAGE_DIR" >/dev/null
 if [[ ! -f sdkconfig ]]; then
   idf.py set-target esp32
 fi
-idf.py -D VWW_INPUT_SIZE="$INPUT_SIZE" -D VWW_MODEL_VARIANT="$VARIANT" build
+idf.py -D VWW_INPUT_SIZE="$INPUT_SIZE" -D VWW_MODEL_VARIANT="$VARIANT" \
+  -D VWW_PERSON_THRESHOLD="${VWW_PERSON_THRESHOLD_OVERRIDE:-0.275f}" \
+  -D VWW_FLASH_LED_ENABLED=0 build
 python -m esptool --chip esp32 merge_bin \
   --flash_mode dio --flash_freq 40m --flash_size 4MB \
   -o merged.bin \

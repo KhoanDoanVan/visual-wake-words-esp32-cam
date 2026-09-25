@@ -1,0 +1,5 @@
+brightness_band,samples,float_accuracy,int8_accuracy
+darkest,500,0.726,0.72
+dark,500,0.736,0.748
+bright,500,0.726,0.726
+brightest,500,0.764,0.75

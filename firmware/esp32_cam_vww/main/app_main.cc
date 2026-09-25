@@ -569,7 +569,7 @@ extern "C" void app_main(void) {
     return;
   }
 
-  tflite::MicroMutableOpResolver<8> resolver;
+  tflite::MicroMutableOpResolver<9> resolver;
   resolver.AddAdd();
   resolver.AddConv2D();
   resolver.AddDepthwiseConv2D();
@@ -577,6 +577,7 @@ extern "C" void app_main(void) {
   resolver.AddMul();
   resolver.AddFullyConnected();
   resolver.AddLogistic();
+  resolver.AddPad();
   resolver.AddReshape();
 
   auto* arena = static_cast<uint8_t*>(heap_caps_aligned_alloc(

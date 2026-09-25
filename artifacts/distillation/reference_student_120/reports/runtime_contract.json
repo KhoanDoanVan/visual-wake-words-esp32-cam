@@ -1,0 +1,23 @@
+{
+  "config_sha256": "49b8968e1c997a2754df41d46c2fd3c43e2c1a40108f72f9a71694a044c27c1a",
+  "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+  "teacher_model_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+  "teacher_targets_sha256": "1bdf01ac3479958836875171895ef61c48edb05b360dd9902b6a939f001fcfc3",
+  "python": "3.10.13",
+  "tensorflow": "2.20.0",
+  "seed": 42,
+  "teacher_input": [
+    160,
+    160,
+    3
+  ],
+  "student_input": [
+    120,
+    120,
+    3
+  ],
+  "geometry": "letterbox",
+  "teacher_antialias": true,
+  "student_antialias": false,
+  "control_uses_teacher_loss": false
+}

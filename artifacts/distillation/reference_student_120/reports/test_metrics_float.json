@@ -1,0 +1,24 @@
+{
+  "samples": 2000,
+  "threshold": 0.31,
+  "accuracy": 0.738,
+  "precision": 0.7031111111111111,
+  "recall": 0.8063200815494393,
+  "f1": 0.7511870845204178,
+  "roc_auc": 0.8318422950685197,
+  "pr_auc": 0.840623373370087,
+  "specificity": 0.6722276741903828,
+  "confusion_matrix": [
+    [
+      685,
+      334
+    ],
+    [
+      190,
+      791
+    ]
+  ],
+  "positive_prevalence": 0.4905,
+  "predicted_positive_rate": 0.5625,
+  "ece_10": 0.06109668425098061
+}
