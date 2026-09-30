@@ -1,0 +1,7 @@
+{
+  "pr_auc_gain": false,
+  "f1_retained": true,
+  "specificity_retained": false,
+  "graph_identity": true,
+  "accepted_float": false
+}

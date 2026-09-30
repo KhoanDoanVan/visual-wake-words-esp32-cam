@@ -1,0 +1,3 @@
+model,parameters,macs,peak_int8_activation
+attention_control,218801,10487648,117136
+attention_transfer,218801,10487648,117136

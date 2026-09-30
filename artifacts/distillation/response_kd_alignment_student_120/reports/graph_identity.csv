@@ -1,0 +1,4 @@
+model,parameters,macs,peak_int8_activation_estimate,parameters_equal,macs_equal
+lambda0_equivalence,218801,10487648,117136,True,True
+same_view_lambda0,218801,10487648,117136,True,True
+same_view_t2_l025,218801,10487648,117136,True,True

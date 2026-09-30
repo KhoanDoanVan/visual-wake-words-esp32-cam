@@ -1,0 +1,4 @@
+model,reference,lambda0_equivalence_passed,pr_auc_gain,f1_retained,specificity_retained,accepted_float
+lambda0_equivalence,hard_control,True,True,True,True,True
+same_view_lambda0,hard_control,True,True,True,True,True
+same_view_t2_l025,same_view_lambda0,True,False,False,False,False

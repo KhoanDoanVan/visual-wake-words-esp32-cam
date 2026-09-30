@@ -1,0 +1,15 @@
+{
+  "config_sha256": "8af90cae2f4a7fd42c58533e1daf73630c69ab40f0b5ad74b9757a8bc622f832",
+  "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+  "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+  "paper_sha256": "e4f13e6dda75d070d4524e2e8fac3074b3b7af3744ed5d66dbbe39170b067be8",
+  "seed": 42,
+  "teacher_size": [
+    160,
+    160
+  ],
+  "student_size": [
+    120,
+    120
+  ]
+}

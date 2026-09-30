@@ -1,0 +1,117 @@
+{
+  "experiment": "vww-attention-transfer-student-120",
+  "contract": {
+    "config_sha256": "8af90cae2f4a7fd42c58533e1daf73630c69ab40f0b5ad74b9757a8bc622f832",
+    "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+    "paper_sha256": "e4f13e6dda75d070d4524e2e8fac3074b3b7af3744ed5d66dbbe39170b067be8",
+    "seed": 42,
+    "teacher_size": [
+      160,
+      160
+    ],
+    "student_size": [
+      120,
+      120
+    ]
+  },
+  "beta_calibration": {
+    "hard_gradient_norm": 8.984138488769531,
+    "raw_attention_gradient_norm": 0.19728991389274597,
+    "target_ratio": 0.1,
+    "beta": 4.553774854224752
+  },
+  "quality": [
+    {
+      "model": "attention_control",
+      "samples": 2000,
+      "threshold": 0.405,
+      "accuracy": 0.773,
+      "precision": 0.7507136060894386,
+      "recall": 0.8042813455657493,
+      "f1": 0.7765748031496063,
+      "roc_auc": 0.8604126089518317,
+      "pr_auc": 0.8633036935758782,
+      "specificity": 0.7428851815505397,
+      "confusion_matrix": [
+        [
+          757,
+          262
+        ],
+        [
+          192,
+          789
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.5255,
+      "ece_10": 0.016567213058471666
+    },
+    {
+      "model": "attention_transfer",
+      "samples": 2000,
+      "threshold": 0.395,
+      "accuracy": 0.766,
+      "precision": 0.7342465753424657,
+      "recall": 0.8195718654434251,
+      "f1": 0.7745664739884393,
+      "roc_auc": 0.8612909260242947,
+      "pr_auc": 0.8617668393222473,
+      "specificity": 0.7144259077526988,
+      "confusion_matrix": [
+        [
+          728,
+          291
+        ],
+        [
+          177,
+          804
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.5475,
+      "ece_10": 0.01584179019927979
+    }
+  ],
+  "bootstrap": [
+    {
+      "metric": "pr_auc_delta",
+      "mean": -0.001378391699550077,
+      "ci_low": -0.007025700210030484,
+      "ci_high": 0.004124321511415688,
+      "probability_positive": 0.316
+    },
+    {
+      "metric": "f1_delta",
+      "mean": -0.0022857091925705267,
+      "ci_low": -0.0132293695180575,
+      "ci_high": 0.008178195068643857,
+      "probability_positive": 0.32
+    }
+  ],
+  "graph": [
+    {
+      "model": "attention_control",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    },
+    {
+      "model": "attention_transfer",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    }
+  ],
+  "gates": {
+    "pr_auc_gain": false,
+    "f1_retained": true,
+    "specificity_retained": false,
+    "graph_identity": true,
+    "accepted_float": false
+  },
+  "int8_export": null,
+  "int8_metrics": null,
+  "float_to_int8_parity": null,
+  "physical_profile_complete": false
+}

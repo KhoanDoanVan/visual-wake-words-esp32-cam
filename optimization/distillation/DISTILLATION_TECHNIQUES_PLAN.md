@@ -6,6 +6,11 @@ This document defines the research and experiment plan for transferring the accu
 160x160 Visual Wake Words teacher into a model that can execute efficiently on ESP32-CAM and
 ESP32-S3. It is the contract for the notebooks that will be added to this directory.
 
+The companion [KD debugging guide](KD_DEBUGGING_GUIDE.md) defines the required checks for data
+alignment, objective correctness, optimization, evaluation, INT8 parity, and physical deployment.
+Use it whenever a distilled model underperforms its hard-label control or behaves differently on
+the device.
+
 Knowledge distillation is a **training method**, not an ESP32 operator. Teacher heads, feature
 adapters, attention losses, and relational losses must not appear in the exported student graph.
 Consequently, distillation can improve a fixed student's accuracy but cannot reduce its device

@@ -1,0 +1,4 @@
+model,reference,fixed_reference,broke_reference,net_correct_change
+lambda0_equivalence,hard_control,110,83,27
+same_view_lambda0,hard_control,204,97,107
+same_view_t2_l025,same_view_lambda0,66,116,-50

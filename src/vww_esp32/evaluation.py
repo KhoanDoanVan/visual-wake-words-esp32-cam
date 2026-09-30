@@ -22,6 +22,12 @@ def collect_predictions(model, dataset) -> tuple[np.ndarray, np.ndarray]:
     return labels.astype(int), probabilities
 
 
+# This function is doing threshold tuning for a binary classifier. Instead of blindly using 
+# the default threshold 0.5, it searches many thresholds and picks the one that best satisfies your chosen objective.
+# The key idea is that changing the threshold changes FP and FN.
+# This is important: threshold selection is not necessarily about minimizing the number of 
+# mistakes. It is about minimizing the mistakes that matter most.
+# Model probability -> try threshold t -> (TP,FP,FN,TN) -> (F1,Recall,Cost) -> Filter by Recall -> Choose best objective
 def select_threshold(
     labels: np.ndarray,
     probabilities: np.ndarray,
@@ -34,7 +40,11 @@ def select_threshold(
     candidates = []
     for threshold in thresholds:
         predictions = probabilities >= threshold
-        _, fp, fn, _ = confusion_matrix(labels, predictions, labels=[0, 1]).ravel()
+        _, fp, fn, _ = confusion_matrix(
+            labels, 
+            predictions, 
+            labels=[0, 1]
+        ).ravel()
         candidates.append(
             {
                 "threshold": float(threshold),

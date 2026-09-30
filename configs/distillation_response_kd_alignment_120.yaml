@@ -1,0 +1,104 @@
+project:
+  name: vww-response-kd-alignment-student-120
+  seed: 42
+
+paths:
+  manifest: data/processed/manifest.csv
+  teacher_model: artifacts/high_resolution_teacher_160/models/teacher_160.keras
+  teacher_targets: artifacts/high_resolution_teacher_160/teacher_distillation_targets.csv
+  control_model: artifacts/distillation/reference_student_120/models/student_120_hard_control.keras
+  control_summary: artifacts/distillation/reference_student_120/reports/experiment_summary.json
+  previous_kd_summary: artifacts/distillation/response_kd_t4_l050_student_120/reports/experiment_summary.json
+  artifacts: artifacts/distillation/response_kd_alignment_student_120
+
+data:
+  teacher_size: [160, 160]
+  student_size: [120, 120]
+  channels: 3
+  batch_size: 32
+  min_person_area_fraction: 0.005
+
+student:
+  architecture: MobileNetV1
+  width_multiplier: 0.25
+  imagenet_initialization: true
+  dropout: 0.1
+  l2: 0.00001
+
+augmentation:
+  horizontal_flip: true
+  translation_fraction: 0.05
+  brightness_delta: 0.18
+  contrast_factor: 0.30
+  saturation_factor: 0.45
+  sensor_noise_stddev: 0.025
+
+training:
+  head_epochs: 8
+  head_learning_rate: 0.0003
+  fine_tune_epochs: 20
+  fine_tune_learning_rate: 0.00003
+  fine_tune_last_layers: 30
+  label_smoothing: 0.03
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+experiments:
+  - name: lambda0_equivalence
+    view_mode: legacy_student_view
+    temperature: 1.0
+    teacher_weight: 0.0
+    enabled_by_default: true
+  - name: cached_clean_no_augmentation_t4_l050
+    view_mode: cached_clean_no_augmentation
+    temperature: 4.0
+    teacher_weight: 0.5
+    enabled_by_default: false
+  - name: same_view_lambda0
+    view_mode: shared_hard_control
+    temperature: 1.0
+    teacher_weight: 0.0
+    enabled_by_default: true
+  - name: same_view_t2_l025
+    view_mode: shared_online_teacher
+    temperature: 2.0
+    teacher_weight: 0.25
+    enabled_by_default: true
+  - name: same_view_t1_l025
+    view_mode: shared_online_teacher
+    temperature: 1.0
+    teacher_weight: 0.25
+    enabled_by_default: false
+  - name: same_view_t4_l025
+    view_mode: shared_online_teacher
+    temperature: 4.0
+    teacher_weight: 0.25
+    enabled_by_default: false
+  - name: same_view_t2_l050
+    view_mode: shared_online_teacher
+    temperature: 2.0
+    teacher_weight: 0.5
+    enabled_by_default: false
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+  bootstrap_samples: 1000
+  calibration_bins: 10
+
+acceptance_gate:
+  maximum_lambda0_pr_auc_difference: 0.003
+  maximum_lambda0_f1_difference: 0.005
+  minimum_float_pr_auc_gain: 0.0
+  maximum_float_f1_drop: 0.005
+  maximum_specificity_drop: 0.01
+  maximum_float_to_int8_probability_mae: 0.03
+  maximum_int8_f1_drop: 0.03
+  require_static_graph_identity: true
+
+export:
+  representative_samples: 500
+  selected_model_filename: student_120_same_view_response_kd_int8.tflite

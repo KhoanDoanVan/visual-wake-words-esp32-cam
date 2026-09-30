@@ -1,0 +1,6 @@
+{
+  "hard_gradient_norm": 8.984138488769531,
+  "raw_attention_gradient_norm": 0.19728991389274597,
+  "target_ratio": 0.1,
+  "beta": 4.553774854224752
+}
