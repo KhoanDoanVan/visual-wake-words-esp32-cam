@@ -1,0 +1,18 @@
+[1/5] cd "/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build/esp-idf/esptool_py" && /Users/doanvankhoan/.espressif/python_env/idf5.3_py3.10_env/bin/python /Users/doanvankhoan/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Volumes/VM_SSD/Machine\ Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build/partition_table/partition-table.bin /Volumes/VM_SSD/Machine\ Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build/esp32_s3_vww.bin
+esp32_s3_vww.bin binary size 0x152220 bytes. Smallest app partition is 0x300000 bytes. 0x1adde0 bytes (56%) free.
+[2/5] Performing build step for 'bootloader'
+[1/1] cd "/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build/bootloader/esp-idf/esptool_py" && /Users/doanvankhoan/.espressif/python_env/idf5.3_py3.10_env/bin/python /Users/doanvankhoan/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Volumes/VM_SSD/Machine\ Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build/bootloader/bootloader.bin
+Bootloader binary size 0x5260 bytes. 0x2da0 bytes (36%) free.
+[3/5] No install step for 'bootloader'
+[4/5] Completed 'bootloader'
+[4/5] cd /Users/doanvankhoan/esp/esp-idf/components/esptool_py && /opt/homebrew/bin/cmake -D IDF_PATH=/Users/doanvankhoan/esp/esp-idf -D "SERIAL_TOOL=/Users/doanvankhoan/.espressif/python_env/idf5.3_py3.10_env/bin/python;;/Users/doanvankhoan/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D "WORKING_DIRECTORY=/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build" -P /Users/doanvankhoan/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/cu.J237 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 16MB 0x0 bootloader/bootloader.bin 0x10000 esp32_s3_vww.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.11.0
+Serial port /dev/cu.J237
+Connecting......................................
+
+A fatal error occurred: Failed to connect to ESP32-S3: No serial data received.
+For troubleshooting steps visit: https://docs.espressif.com/projects/esptool/en/latest/troubleshooting.html
+FAILED: [code=1] CMakeFiles/flash /Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build/CMakeFiles/flash 
+cd /Users/doanvankhoan/esp/esp-idf/components/esptool_py && /opt/homebrew/bin/cmake -D IDF_PATH=/Users/doanvankhoan/esp/esp-idf -D "SERIAL_TOOL=/Users/doanvankhoan/.espressif/python_env/idf5.3_py3.10_env/bin/python;;/Users/doanvankhoan/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D "WORKING_DIRECTORY=/Volumes/VM_SSD/Machine Learning/visual-wake-word-esp32/firmware/esp32_s3_vww/build" -P /Users/doanvankhoan/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+ninja: build stopped: subcommand failed.

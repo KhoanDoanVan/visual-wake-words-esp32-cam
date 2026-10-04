@@ -1,0 +1,229 @@
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x29 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2810,len:0x178c
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xcb8
+load:0x403cb700,len:0x2db0
+entry 0x403c8914
+[0;32mI (27) boot: ESP-IDF v5.3 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Oct  4 2026 16:10:21[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (30) boot: chip revision: v0.2[0m
+[0;32mI (34) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (38) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (43) boot.esp32s3: SPI Flash Size : 16MB[0m
+[0;32mI (48) boot: Enabling RNG early entropy source...[0m
+[0;32mI (53) boot: Partition Table:[0m
+[0;32mI (57) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (64) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (72) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (79) boot:  2 factory          factory app      00 00 00010000 00300000[0m
+[0;32mI (87) boot: End of partition table[0m
+[0;32mI (91) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=78c54h (494676) map[0m
+[0;32mI (188) esp_image: segment 1: paddr=00088c7c vaddr=3fc9a800 size=0739ch ( 29596) load[0m
+[0;32mI (194) esp_image: segment 2: paddr=00090020 vaddr=42000020 size=badf4h (765428) map[0m
+[0;32mI (332) esp_image: segment 3: paddr=0014ae1c vaddr=3fca1b9c size=00c48h (  3144) load[0m
+[0;32mI (333) esp_image: segment 4: paddr=0014ba6c vaddr=40374000 size=1677ch ( 92028) load[0m
+[0;32mI (368) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (368) boot: Disabling RNG early entropy source...[0m
+[0;32mI (380) octal_psram: vendor id    : 0x0d (AP)[0m
+[0;32mI (380) octal_psram: dev id       : 0x02 (generation 3)[0m
+[0;32mI (380) octal_psram: density      : 0x03 (64 Mbit)[0m
+[0;32mI (385) octal_psram: good-die     : 0x01 (Pass)[0m
+[0;32mI (390) octal_psram: Latency      : 0x01 (Fixed)[0m
+[0;32mI (395) octal_psram: VCC          : 0x01 (3V)[0m
+[0;32mI (400) octal_psram: SRF          : 0x01 (Fast Refresh)[0m
+[0;32mI (406) octal_psram: BurstType    : 0x01 (Hybrid Wrap)[0m
+[0;32mI (412) octal_psram: BurstLen     : 0x01 (32 Byte)[0m
+[0;32mI (418) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)[0m
+[0;32mI (424) octal_psram: DriveStrength: 0x00 (1/1)[0m
+[0;32mI (429) MSPI Timing: PSRAM timing tuning index: 5[0m
+[0;32mI (434) esp_psram: Found 8MB PSRAM device[0m
+[0;32mI (439) esp_psram: Speed: 80MHz[0m
+[0;32mI (443) cpu_start: Multicore app[0m
+[0;32mI (860) esp_psram: SPI SRAM memory test OK[0m
+[0;32mI (869) cpu_start: Pro cpu start user code[0m
+[0;32mI (869) cpu_start: cpu freq: 240000000 Hz[0m
+[0;32mI (869) app_init: Application information:[0m
+[0;32mI (872) app_init: Project name:     esp32_s3_vww[0m
+[0;32mI (877) app_init: App version:      755eacb-dirty[0m
+[0;32mI (883) app_init: Compile time:     Oct  4 2026 16:08:46[0m
+[0;32mI (888) app_init: ELF file SHA256:  f5a2e999c...[0m
+[0;32mI (894) app_init: ESP-IDF:          v5.3[0m
+[0;32mI (898) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (903) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (908) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (913) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (920) heap_init: At 3FCA7220 len 000424F0 (265 KiB): RAM[0m
+[0;32mI (926) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (932) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (939) heap_init: At 600FE100 len 00001EE8 (7 KiB): RTCRAM[0m
+[0;32mI (945) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator[0m
+[0;32mI (953) spi_flash: detected chip: boya[0m
+[0;32mI (957) spi_flash: flash io: dio[0m
+[0;33mW (961) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`[0m
+[0;32mI (971) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (978) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (985) main_task: Started on CPU0[0m
+[0;32mI (995) esp_psram: Reserving pool of 64K of internal memory for DMA/internal allocations[0m
+[0;32mI (998) main_task: Calling app_main()[0m
+[0;32mI (1002) vww: VWW startup: model=304296 bytes threshold=0.28 debounce=2/3[0m
+[0;32mI (1010) gpio: GPIO[3]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (1019) vww: Indicators: webpage BLUE=person; GPIO3 PERSON LED=enabled[0m
+[0;32mI (1026) vww: before allocations: internal_free=311771 internal_largest=184320 psram_free=8385720 psram_largest=8257536[0m
+[0;32mI (1060) vww: internal SRAM memcpy: 363.32 MiB/s (32768 bytes x 256, 22.0ms, check=0)[0m
+[0;32mI (1439) vww: mapped PSRAM memcpy: 21.28 MiB/s (65536 bytes x 128, 375.9ms, check=0)[0m
+[0;32mI (1440) s3 ll_cam: DMA Channel=0[0m
+[0;32mI (1441) cam_hal: cam init ok[0m
+[0;32mI (1444) sccb: pin_sda 4 pin_scl 5[0m
+[0;32mI (1448) sccb: sccb_i2c_port=1[0m
+[0;32mI (1463) ov3640: Mismatch PID=0x3660[0m
+[0;32mI (1465) camera: Camera PID=0x3660 VER=0x00 MIDL=0x00 MIDH=0x00[0m
+[0;32mI (1465) camera: Detected OV3660 camera[0m
+[0;32mI (1468) camera: Detected camera at address=0x3c[0m
+[0;32mI (1785) cam_hal: PSRAM DMA mode disabled[0m
+[0;32mI (1785) cam_hal: buffer_size: 16384, half_buffer_size: 1024, node_buffer_size: 1024, node_cnt: 16, total_cnt: 180[0m
+[0;32mI (1789) cam_hal: Allocating 184320 Byte frame buffer in PSRAM[0m
+[0;32mI (1796) cam_hal: cam config ok[0m
+[0;32mI (1813) ov3660: Calculated VCO: 200000000 Hz, PLLCLK: 200000000 Hz, SYSCLK: 50000000 Hz, PCLK: 10000000 Hz[0m
+[0;32mI (1842) vww: OV3660 corrected: vflip=1 brightness=1 saturation=-2[0m
+[0;32mI (1851) vww: OV3660 low-light controls: AEC/AGC/AWB on, AE=+1, gain ceiling=64x[0m
+[0;32mI (1864) ov3660: Calculated VCO: 200000000 Hz, PLLCLK: 200000000 Hz, SYSCLK: 50000000 Hz, PCLK: 10000000 Hz[0m
+[0;32mI (1867) vww: Inference capture size set to 320x240; model input is 120x120 RGB[0m
+[0;32mI (2147) vww: Camera color-bar stabilized for the first diagnostic frame[0m
+[0;32mI (2148) vww: Tensor arena placement=psram_fallback reserved=245760[0m
+[0;32mI (2171) vww: Input INT8 scale=1.000000 zero=-128 bytes=43200[0m
+[0;32mI (2172) vww: Output INT8 scale=0.003906 zero=-128 bytes=1[0m
+[0;32mI (2186) pp: pp rom version: e7ae62f[0m
+[0;32mI (2186) net80211: net80211 rom version: e7ae62f[0m
+[0;32mI (2188) wifi:wifi driver task: 3fcc6a40, prio:23, stack:6656, core=0[0m
+[0;32mI (2197) wifi:wifi firmware version: 0caa81945[0m
+[0;32mI (2198) wifi:wifi certification version: v7.0[0m
+[0;32mI (2199) wifi:config NVS flash: enabled[0m
+[0;32mI (2202) wifi:config nano formating: disabled[0m
+[0;32mI (2207) wifi:Init data frame dynamic rx buffer num: 32[0m
+[0;32mI (2212) wifi:Init static rx mgmt buffer num: 5[0m
+[0;32mI (2216) wifi:Init management short buffer num: 32[0m
+[0;32mI (2220) wifi:Init static tx buffer num: 16[0m
+[0;32mI (2224) wifi:Init tx cache buffer num: 32[0m
+[0;32mI (2228) wifi:Init static tx FG buffer num: 2[0m
+[0;32mI (2232) wifi:Init static rx buffer size: 1600[0m
+[0;32mI (2236) wifi:Init static rx buffer num: 10[0m
+[0;32mI (2240) wifi:Init dynamic rx buffer num: 32[0m
+[0;32mI (2245) wifi_init: rx ba win: 6[0m
+[0;32mI (2248) wifi_init: accept mbox: 6[0m
+[0;32mI (2252) wifi_init: tcpip mbox: 32[0m
+[0;32mI (2256) wifi_init: udp mbox: 6[0m
+[0;32mI (2260) wifi_init: tcp mbox: 6[0m
+[0;32mI (2264) wifi_init: tcp tx win: 5760[0m
+[0;32mI (2268) wifi_init: tcp rx win: 5760[0m
+[0;32mI (2272) wifi_init: tcp mss: 1440[0m
+[0;32mI (2276) wifi_init: WiFi IRAM OP enabled[0m
+[0;32mI (2281) wifi_init: WiFi RX IRAM OP enabled[0m
+[0;32mI (2608) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10[0m
+[0;33mW (2657) phy_init: saving new calibration data because of checksum failure, mode(0)[0m
+[0;32mI (2667) wifi:mode : softAP (14:c1:9f:cd:29:b1)[0m
+[0;32mI (2670) wifi:Total power save buffer number: 8[0m
+[0;32mI (2670) wifi:Init max length of beacon: 752/752[0m
+[0;32mI (2671) wifi:Init max length of beacon: 752/752[0m
+[0;32mI (2674) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1[0m
+[0;32mI (2685) vww_web: Dashboard ready: Wi-Fi 'VWW-Camera' password 'visualwake', open http://192.168.4.1[0m
+[0;32mI (2692) vww: ready: internal_free=130035 internal_largest=63488 psram_free=7312612 psram_largest=7208960[0m
+[0;32mI (2834) vww: Camera self-test: rgb_mean=[136.4,130.4,138.1] range=[0,255] hash=8de97fa5[0m
+[0;32mI (2835) vww: Input preview (dark -> bright):[0m
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----++**=----::::   
+%%%%********----++++=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+%%%%********----****=----::::   
+[0;32mI (2910) vww: Camera self-test passed (color-bar mean 135.0)[0m
+[0;32mI (4489) vww: Camera-only: 13.88 fps (20 frames, 1440.7ms), JPEG mean=3436.6B range=[3427,3452] payload=381.7kbit/s[0m
+[0;32mI (4692) vww: Input preview (dark -> bright):[0m
+---==+*#%%%+==----::::::::::::..
+-==+#%%%*==+++=---::::::::::::::
++*%%%*===+*%%%+---:::::::::::::.
+%%%+==*#%%%#+==---::::::::::::..
++==++%%%#+===---:::::::::::::::.
+=+%%%%++===----::::::::::::.:::.
+%%%+====----::--::::::::::::.::.
+===------------::::::::::::..:::
+:-----:-----:::::::::::::.::..::
+::::::----:::::::::::::::::...::
+:::::-:::-::::::::::::::::....::
+:::::::::::::::::::::::::.:....:
+:::::::::::::::::::::::::::....:
+::::::::::::::::::::::::::::...:
+.::::::::::::::::::::::::::.....
+..::::::::::::::::::::::::::....
+.....:::::::::::::::::::::......
+........::::::::::::::::::......
+........:::::::::::::::::::.:...
+........::::::::::::::::::::....
+.........:::::::::::::::::......
+.........:::::::::::::::::......
+..........::::::::::::::::......
+...........::::::::::::::.......
+[0;32mI (4935) vww: p=0.188 wake=0 jpeg=3429B timing_ms[capture=71.2 preprocess=109.9 infer=177.2 publish=0.2 active=445.2 period=1787.3 fps=0.56] rgb_mean=[77.0,81.2,71.0] range=[19,255] delta=-1.0 hash=a20d28e4[0m
+[0;32mI (9067) vww: p=0.199 wake=0 jpeg=3437B timing_ms[capture=0.2 preprocess=109.8 infer=177.6 publish=0.2 active=312.5 period=412.0 fps=2.43] rgb_mean=[76.8,81.3,70.4] range=[19,255] delta=0.6 hash=51d21735[0m
+[0;32mI (13195) vww: p=0.207 wake=0 jpeg=3433B timing_ms[capture=0.2 preprocess=109.8 infer=177.7 publish=0.2 active=312.5 period=412.0 fps=2.43] rgb_mean=[76.8,81.3,70.4] range=[20,255] delta=0.4 hash=b5d36ce6[0m
+[0;32mI (13616) vww: VWW_PROFILE,BEGIN,variant=student_120_hard_control_int8,input=120x120x3,batch=1,samples=20,warmup=2,arena_used_bytes=159212[0m
+[0;32mI (13618) vww: VWW_PROFILE,OP,index=0,tag=MUL,count=20,total_us=359641,mean_us=17982.05,min_us=17802,max_us=18280[0m
+[0;32mI (13629) vww: VWW_PROFILE,OP,index=1,tag=ADD,count=20,total_us=818343,mean_us=40917.15,min_us=40480,max_us=41317[0m
+[0;32mI (13640) vww: VWW_PROFILE,OP,index=2,tag=CONV_2D,count=20,total_us=381115,mean_us=19055.75,min_us=18988,max_us=19296[0m
+[0;32mI (13651) vww: VWW_PROFILE,OP,index=3,tag=DEPTHWISE_CONV_2D,count=20,total_us=194806,mean_us=9740.30,min_us=9717,max_us=9873[0m
+[0;32mI (13663) vww: VWW_PROFILE,OP,index=4,tag=CONV_2D,count=20,total_us=196225,mean_us=9811.25,min_us=9767,max_us=10361[0m
+[0;32mI (13674) vww: VWW_PROFILE,OP,index=5,tag=DEPTHWISE_CONV_2D,count=20,total_us=123090,mean_us=6154.50,min_us=6096,max_us=6651[0m
+[0;32mI (13686) vww: VWW_PROFILE,OP,index=6,tag=CONV_2D,count=20,total_us=104214,mean_us=5210.70,min_us=5141,max_us=5655[0m
+[0;32mI (13697) vww: VWW_PROFILE,OP,index=7,tag=DEPTHWISE_CONV_2D,count=20,total_us=167367,mean_us=8368.35,min_us=8247,max_us=8785[0m
+[0;32mI (13709) vww: VWW_PROFILE,OP,index=8,tag=CONV_2D,count=20,total_us=120602,mean_us=6030.10,min_us=5896,max_us=6500[0m
+[0;32mI (13720) vww: VWW_PROFILE,OP,index=9,tag=DEPTHWISE_CONV_2D,count=20,total_us=76618,mean_us=3830.90,min_us=3771,max_us=4042[0m
+[0;32mI (13732) vww: VWW_PROFILE,OP,index=10,tag=CONV_2D,count=20,total_us=57170,mean_us=2858.50,min_us=2821,max_us=3031[0m
+[0;32mI (13743) vww: VWW_PROFILE,OP,index=11,tag=DEPTHWISE_CONV_2D,count=20,total_us=59897,mean_us=2994.85,min_us=2972,max_us=3042[0m
+[0;32mI (13755) vww: VWW_PROFILE,OP,index=12,tag=CONV_2D,count=20,total_us=70340,mean_us=3517.00,min_us=3463,max_us=3978[0m
+[0;32mI (13766) vww: VWW_PROFILE,OP,index=13,tag=PAD,count=20,total_us=40992,mean_us=2049.60,min_us=2034,max_us=2200[0m
+[0;32mI (13776) vww: VWW_PROFILE,OP,index=14,tag=DEPTHWISE_CONV_2D,count=20,total_us=13345,mean_us=667.25,min_us=629,max_us=1000[0m
+[0;32mI (13788) vww: VWW_PROFILE,OP,index=15,tag=CONV_2D,count=20,total_us=41011,mean_us=2050.55,min_us=2026,max_us=2152[0m
+[0;32mI (13799) vww: VWW_PROFILE,OP,index=16,tag=DEPTHWISE_CONV_2D,count=20,total_us=29502,mean_us=1475.10,min_us=1427,max_us=1780[0m
+[0;32mI (13811) vww: VWW_PROFILE,OP,index=17,tag=CONV_2D,count=20,total_us=62555,mean_us=3127.75,min_us=3094,max_us=3414[0m
+[0;32mI (13822) vww: VWW_PROFILE,OP,index=18,tag=DEPTHWISE_CONV_2D,count=20,total_us=29806,mean_us=1490.30,min_us=1462,max_us=1748[0m
+[0;32mI (13834) vww: VWW_PROFILE,OP,index=19,tag=CONV_2D,count=20,total_us=61184,mean_us=3059.20,min_us=3016,max_us=3410[0m
+[0;32mI (13845) vww: VWW_PROFILE,OP,index=20,tag=DEPTHWISE_CONV_2D,count=20,total_us=30215,mean_us=1510.75,min_us=1466,max_us=1823[0m
+[0;32mI (13857) vww: VWW_PROFILE,OP,index=21,tag=CONV_2D,count=20,total_us=60988,mean_us=3049.40,min_us=3012,max_us=3352[0m
+[0;32mI (13868) vww: VWW_PROFILE,OP,index=22,tag=DEPTHWISE_CONV_2D,count=20,total_us=30105,mean_us=1505.25,min_us=1460,max_us=1835[0m
+[0;32mI (13880) vww: VWW_PROFILE,OP,index=23,tag=CONV_2D,count=20,total_us=67526,mean_us=3376.30,min_us=3348,max_us=3594[0m
+[0;32mI (13891) vww: VWW_PROFILE,OP,index=24,tag=DEPTHWISE_CONV_2D,count=20,total_us=30172,mean_us=1508.60,min_us=1482,max_us=1782[0m
+[0;32mI (13903) vww: VWW_PROFILE,OP,index=25,tag=CONV_2D,count=20,total_us=63216,mean_us=3160.80,min_us=3144,max_us=3235[0m
+[0;32mI (13914) vww: VWW_PROFILE,OP,index=26,tag=PAD,count=20,total_us=18476,mean_us=923.80,min_us=899,max_us=960[0m
+[0;32mI (13924) vww: VWW_PROFILE,OP,index=27,tag=DEPTHWISE_CONV_2D,count=20,total_us=7268,mean_us=363.40,min_us=352,max_us=408[0m
+[0;32mI (13936) vww: VWW_PROFILE,OP,index=28,tag=CONV_2D,count=20,total_us=62694,mean_us=3134.70,min_us=3108,max_us=3331[0m
+[0;32mI (13947) vww: VWW_PROFILE,OP,index=29,tag=DEPTHWISE_CONV_2D,count=20,total_us=16526,mean_us=826.30,min_us=809,max_us=879[0m
+[0;32mI (13958) vww: VWW_PROFILE,OP,index=30,tag=CONV_2D,count=20,total_us=111286,mean_us=5564.30,min_us=5553,max_us=5591[0m
+[0;32mI (13970) vww: VWW_PROFILE,OP,index=31,tag=MEAN,count=20,total_us=39379,mean_us=1968.95,min_us=1962,max_us=1977[0m
+[0;32mI (13980) vww: VWW_PROFILE,OP,index=32,tag=FULLY_CONNECTED,count=20,total_us=2539,mean_us=126.95,min_us=121,max_us=135[0m
+[0;32mI (13992) vww: VWW_PROFILE,OP,index=33,tag=LOGISTIC,count=20,total_us=2986,mean_us=149.30,min_us=140,max_us=159[0m
+[0;32mI (14002) vww: VWW_PROFILE,TOTAL,count=20,total_us=3555832,mean_us=177791.60,min_us=177137,max_us=178289,operator_sum_mean_us=177559.95,unprofiled_mean_us=231.65[0m
+[0;32mI (14017) vww: VWW_PROFILE,END[0m
+[0;32mI (17729) vww: p=0.188 wake=0 jpeg=3431B timing_ms[capture=0.2 preprocess=109.8 infer=177.8 publish=0.2 active=312.7 period=412.0 fps=2.43] rgb_mean=[76.8,81.1,70.9] range=[20,255] delta=0.4 hash=c008899c[0m
+[0;32mI (21860) vww: p=0.195 wake=0 jpeg=3449B timing_ms[capture=0.2 preprocess=109.8 infer=177.8 publish=0.2 active=313.0 period=412.0 fps=2.43] rgb_mean=[76.8,81.1,70.9] range=[19,255] delta=0.6 hash=c2f7777f[0m
