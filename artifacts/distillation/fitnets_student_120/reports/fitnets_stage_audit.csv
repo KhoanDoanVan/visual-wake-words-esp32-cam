@@ -1,0 +1,3 @@
+network,layer,shape,input,effective_spatial_reduction
+teacher,conv_pw_6_relu,"(None, 10, 10, 256)","(None, 160, 160, 3)",16.0
+student,conv_pw_6_relu,"(None, 7, 7, 128)","(None, 120, 120, 3)",17.142857142857142

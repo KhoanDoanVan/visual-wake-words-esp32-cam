@@ -1,0 +1,237 @@
+{
+  "experiment": "vww-fitnets-student-120",
+  "paper_algorithm": {
+    "stage1": "Equation 3 hint regression",
+    "stage2": "Equation 2 hard plus softened teacher cross-entropy",
+    "temperature": 3.0,
+    "lambda_start": 4.0,
+    "lambda_end": 1.0,
+    "teacher_hint_layer": "conv_pw_6_relu",
+    "student_guided_layer": "conv_pw_6_relu"
+  },
+  "contract": {
+    "config_sha256": "1e002d57b24e2e6cd3a124d8cf2bc4c8aff266323762992fcecf85d07ad43b9c",
+    "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+    "paper_sha256": "584ff258c88dd5b992b1df7977d856189840cdf89b0ff93331a69054f5f5f9c7",
+    "seed": 42,
+    "teacher_size": [
+      160,
+      160
+    ],
+    "student_size": [
+      120,
+      120
+    ],
+    "tensorflow": "2.20.0",
+    "python": "3.10.13"
+  },
+  "quality": [
+    {
+      "model": "hard_control",
+      "samples": 2000,
+      "threshold": 0.395,
+      "accuracy": 0.57,
+      "precision": 0.5384126984126985,
+      "recall": 0.8644240570846076,
+      "f1": 0.6635367762128326,
+      "roc_auc": 0.6379252910300619,
+      "pr_auc": 0.6146902614150682,
+      "specificity": 0.28655544651619236,
+      "confusion_matrix": [
+        [
+          292,
+          727
+        ],
+        [
+          133,
+          848
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.7875,
+      "ece_10": 0.01645431447029114
+    },
+    {
+      "model": "kd_control",
+      "samples": 2000,
+      "threshold": 0.365,
+      "accuracy": 0.545,
+      "precision": 0.5200905489530278,
+      "recall": 0.9367991845056065,
+      "f1": 0.6688500727802038,
+      "roc_auc": 0.6627792633140563,
+      "pr_auc": 0.6426278956214018,
+      "specificity": 0.1678115799803729,
+      "confusion_matrix": [
+        [
+          171,
+          848
+        ],
+        [
+          62,
+          919
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.8835,
+      "ece_10": 0.030474299684166917
+    },
+    {
+      "model": "fitnets_hint_kd",
+      "samples": 2000,
+      "threshold": 0.18000000000000002,
+      "accuracy": 0.6985,
+      "precision": 0.6497622820919176,
+      "recall": 0.835881753312946,
+      "f1": 0.7311636201515826,
+      "roc_auc": 0.8030704084174387,
+      "pr_auc": 0.7984691805432358,
+      "specificity": 0.5662414131501472,
+      "confusion_matrix": [
+        [
+          577,
+          442
+        ],
+        [
+          161,
+          820
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.631,
+      "ece_10": 0.15682893646508458
+    }
+  ],
+  "bootstrap": [
+    {
+      "metric": "pr_auc_delta",
+      "mean": 0.1557061068104332,
+      "ci_low": 0.12735898292705833,
+      "ci_high": 0.18579115308923055,
+      "probability_positive": 1.0
+    },
+    {
+      "metric": "f1_delta",
+      "mean": 0.06222241005405417,
+      "ci_low": 0.04573074776734616,
+      "ci_high": 0.08110117016453221,
+      "probability_positive": 1.0
+    }
+  ],
+  "feature_diagnostics": [
+    {
+      "model": "shared_initial",
+      "linear_cka": 0.32658637450919326,
+      "hint_mse_with_stage1_regressor": 4.203130722045898
+    },
+    {
+      "model": "hint_checkpoint",
+      "linear_cka": 0.9562026679891892,
+      "hint_mse_with_stage1_regressor": 0.6107592582702637
+    },
+    {
+      "model": "kd_control_final",
+      "linear_cka": 0.6171901968221889,
+      "hint_mse_with_stage1_regressor": 1.586600661277771
+    },
+    {
+      "model": "fitnets_final",
+      "linear_cka": 0.9177212694062683,
+      "hint_mse_with_stage1_regressor": 0.8429205417633057
+    }
+  ],
+  "graph": [
+    {
+      "model": "hard_control",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    },
+    {
+      "model": "kd_control",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    },
+    {
+      "model": "fitnets_hint_kd",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    }
+  ],
+  "gates": {
+    "pr_auc_gain": true,
+    "f1_retained": true,
+    "specificity_retained": true,
+    "feature_alignment_gain": true,
+    "graph_identity": true,
+    "accepted_float": true
+  },
+  "int8_export": {
+    "size_bytes": 304944,
+    "input": {
+      "name": "serving_default_image:0",
+      "shape": [
+        1,
+        120,
+        120,
+        3
+      ],
+      "dtype": "int8",
+      "scale": 1.0000003576278687,
+      "zero_point": -128
+    },
+    "output": {
+      "name": "StatefulPartitionedCall_1:0",
+      "shape": [
+        1,
+        1
+      ],
+      "dtype": "int8",
+      "scale": 0.00390625,
+      "zero_point": -128
+    },
+    "operators": [
+      "ADD",
+      "CONV_2D",
+      "DEPTHWISE_CONV_2D",
+      "FULLY_CONNECTED",
+      "LOGISTIC",
+      "MEAN",
+      "MUL",
+      "PAD"
+    ]
+  },
+  "int8_metrics": {
+    "samples": 2000,
+    "threshold": 0.17500000000000002,
+    "accuracy": 0.6925,
+    "precision": 0.6401225114854517,
+    "recall": 0.8521916411824668,
+    "f1": 0.7310887625710538,
+    "roc_auc": 0.8059169360139009,
+    "pr_auc": 0.7991797260519714,
+    "specificity": 0.5387634936211972,
+    "confusion_matrix": [
+      [
+        549,
+        470
+      ],
+      [
+        145,
+        836
+      ]
+    ],
+    "positive_prevalence": 0.4905,
+    "predicted_positive_rate": 0.653
+  },
+  "float_to_int8_parity": {
+    "probability_mae": 0.014112983132712543,
+    "f1_delta": -7.485758052883096e-05,
+    "pr_auc_delta": 0.0007105455087356161,
+    "passed": true
+  },
+  "physical_profile_complete": false
+}

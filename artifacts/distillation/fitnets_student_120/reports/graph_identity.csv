@@ -1,0 +1,4 @@
+model,parameters,macs,peak_int8_activation
+hard_control,218801,10487648,117136
+kd_control,218801,10487648,117136
+fitnets_hint_kd,218801,10487648,117136

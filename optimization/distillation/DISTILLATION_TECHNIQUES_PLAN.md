@@ -212,9 +212,12 @@ sample's tensor.
   as a contrastive representation objective.
 
 These techniques do not change the deployed graph, but pairwise batch matrices, negative samples,
-or memory banks can increase host training memory and experimental complexity. They are research
-extensions, not first-line experiments. A relation method is promoted only if response plus
-attention KD saturates while a reproducible student/teacher representation gap remains.
+or memory banks can increase host training memory and experimental complexity. Notebook 06 uses
+Similarity-Preserving KD as the first controlled relation experiment. It matches row-normalized
+sample Gram matrices from the teacher and student final convolution, using the exact paper loss
+with a strong shared ImageNet initialization. Response KD is excluded so the result belongs to the
+relation loss. Later RKD or CRD work is justified only if this simpler relation experiment exposes
+a useful, reproducible geometry signal.
 
 ## 5. Quantization-aware knowledge distillation
 
@@ -371,16 +374,19 @@ coherent phase:
 |---|---|---|
 | [`01_distillation_reference_and_student_control_evaluated.ipynb`](hard-label%20control/01_distillation_reference_and_student_control_evaluated.ipynb) ([result report](hard-label%20control/01_DISTILLATION_REFERENCE_RESULTS.md)) | Audit + hard control | Is the teacher/student/data/device contract valid? |
 | [`02_response_kd_hinton_micronets.ipynb`](response-based%20distillation/02_response_kd_hinton_micronets.ipynb) | Hinton/MicroNets response KD | Does binary soft supervision improve the fixed student? |
-| `03_attention_transfer.ipynb` | Spatial attention KD | Does localization transfer improve difficult person slices? |
-| `04_fitnets_feature_hints.ipynb` | Feature regression | Do direct representation hints outperform attention maps? |
-| `05_quantization_aware_distillation.ipynb` | KD + INT8 QAT | Which staging preserves float-student quality? |
-| `06_relation_based_distillation.ipynb` | RKD/SPKD | Is added training complexity justified? |
-| `07_hardware_aware_student_search.ipynb` | KD-guided search | Which ESP-NN-friendly topology gives the best device Pareto point? |
-| `08_distillation_device_report.ipynb` | Final deployment audit | What changed on ESP32-CAM and ESP32-S3? |
+| [`03_response_kd_alignment_and_ablation.ipynb`](response-based%20distillation/03_response_kd_alignment_and_ablation.ipynb) | Corrected response-KD ablation | Does same-view RGB supervision change the response-KD conclusion? |
+| [`04_attention_transfer_kd.ipynb`](attention%20transfer/04_attention_transfer_kd.ipynb) | Spatial attention KD | Does localization transfer improve difficult person slices? |
+| [`05_fitnets_feature_hints.ipynb`](feature-based%20distillation/05_fitnets_feature_hints.ipynb) ([outcome report](feature-based%20distillation/05_FITNETS_OUTCOME_REPORT.md)) | FitNets feature regression | Does paper-style hint pretraining outperform the same Stage-2 KD without hints? |
+| [`06_similarity_preserving_kd.ipynb`](relation-based%20distillation/06_similarity_preserving_kd.ipynb) | Similarity-Preserving KD | Does matching within-batch representation geometry improve a strong Student-120 control? |
+| [`07_quantization_aware_kd.ipynb`](quantization-aware%20distillation/07_quantization_aware_kd.ipynb) | Paper-derived QKD + INT8 QAT | Do self-studying, co-studying, and tutoring improve full-INT8 Student-120 over hard-label QAT? |
+| `08_relational_kd_distance_angle.ipynb` | Optional RKD distance + angle | Revisit only if newer literature and project evidence justify more relation research |
+| `09_hardware_aware_student_search.ipynb` | KD-guided search | Which ESP-NN-friendly topology gives the best device Pareto point? |
+| `10_distillation_device_report.ipynb` | Final deployment audit | What changed on ESP32-CAM and ESP32-S3? |
 
-Notebook 01 must run before any technique notebook. Notebook 02 must establish the response-KD
-baseline before feature losses are introduced. Notebook 05 starts only after a float student is
-selected; otherwise quantization and distillation effects become confounded.
+Notebook 01 must run before any technique notebook. Notebooks 02 and 03 establish the response-KD
+baseline before feature losses are introduced. Notebook 06 is the first relation-based experiment
+and isolates the exact Similarity-Preserving loss from its paper. Quantization begins only after a
+float student is selected; otherwise quantization and distillation effects become confounded.
 
 ## Required figures
 
@@ -442,9 +448,14 @@ tracked when they are required to reproduce or audit a result.
 2. Build Notebook 02 with the paper-derived `T=4`, `lambda=0.5` anchor plus the small registered
    sweep in this document.
 3. Promote one response-KD configuration using validation results only.
-4. Add Attention Transfer before FitNets because it naturally tolerates different channel widths.
-5. Select the best float student and then perform INT8 QAT.
-6. Deploy the integer student and measure both physical boards before beginning architecture search.
+4. Add Attention Transfer, then FitNets, while retaining the stronger prior Student-120 as the
+   project-level promotion reference.
+5. Record Similarity-Preserving KD as a mechanism success but a predictive and training-efficiency
+   rejection; park further relation experiments.
+6. Apply paper-derived Quantization-aware Knowledge Distillation to the Notebook 03 float champion,
+   retaining PTQ, hard-label QAT, and fixed-teacher QAT+KD controls.
+7. Deploy only an accepted integer student and measure both physical boards before beginning
+   architecture search.
 
 This order answers the cheapest and most important question first: whether the accepted teacher
 can improve a fixed, deployable student without changing its inference cost.

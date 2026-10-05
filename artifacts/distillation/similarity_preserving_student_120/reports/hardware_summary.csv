@@ -1,0 +1,3 @@
+model,parameters,estimated_macs_batch1,estimated_peak_int8_activation_bytes,tflite_bytes,esp32_cam_invoke_ms,esp32_s3_invoke_ms,measured_tensor_arena_bytes,evidence
+sp_control,218801,10487648,117136,,,,,static desktop estimate; physical fields pending
+similarity_preserving,218801,10487648,117136,,,,,static desktop estimate; physical fields pending

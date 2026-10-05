@@ -1,0 +1,7 @@
+{
+  "float_champion": 0.385,
+  "ptq_int8": 0.275,
+  "hard_qat_int8": 0.01,
+  "fixed_teacher_qat_kd_int8": 0.025,
+  "qkd_full_int8": 0.05
+}

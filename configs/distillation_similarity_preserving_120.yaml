@@ -1,0 +1,73 @@
+project:
+  name: vww-similarity-preserving-kd-student-120
+  seed: 42
+
+paths:
+  manifest: data/processed/manifest.csv
+  teacher_model: artifacts/high_resolution_teacher_160/models/teacher_160.keras
+  champion_model: artifacts/distillation/response_kd_alignment_student_120/models/same_view_lambda0.keras
+  champion_quality: artifacts/distillation/response_kd_alignment_student_120/reports/quality_comparison.csv
+  spkd_paper: papers/distillation/05_similarity_preserving_kd_2019.pdf
+  artifacts: artifacts/distillation/similarity_preserving_student_120
+
+data:
+  teacher_size: [160, 160]
+  student_size: [120, 120]
+  channels: 3
+  batch_size: 32
+  diagnostic_batch_size: 32
+
+student:
+  architecture: MobileNetV1
+  width_multiplier: 0.25
+  initialization: imagenet
+  dropout: 0.1
+  l2: 0.00001
+
+similarity_preserving:
+  teacher_layer: conv_pw_13_relu
+  student_layer: conv_pw_13_relu
+  target_gradient_ratio: 0.10
+  gamma_minimum: 0.000001
+  gamma_maximum: 1000000.0
+  epsilon: 0.000001
+
+augmentation:
+  translation_fraction: 0.05
+  brightness_delta: 0.18
+  contrast_factor: 0.30
+  saturation_delta: 0.45
+  sensor_noise_stddev: 0.025
+
+training:
+  head_epochs: 8
+  head_learning_rate: 0.0003
+  fine_tune_epochs: 20
+  fine_tune_learning_rate: 0.00003
+  fine_tune_last_layers: 30
+  label_smoothing: 0.03
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+  bootstrap_samples: 1000
+  relation_diagnostic_samples: 32
+
+acceptance_gate:
+  minimum_pr_auc_gain_over_control: 0.0
+  maximum_f1_drop_from_control: 0.005
+  maximum_specificity_drop_from_control: 0.01
+  minimum_relation_alignment_gain: 0.0
+  maximum_pr_auc_drop_from_champion: 0.0
+  maximum_f1_drop_from_champion: 0.0
+  maximum_float_to_int8_probability_mae: 0.03
+  require_graph_identity: true
+
+export:
+  representative_samples: 500
+  model_filename: student_120_similarity_preserving_int8.tflite

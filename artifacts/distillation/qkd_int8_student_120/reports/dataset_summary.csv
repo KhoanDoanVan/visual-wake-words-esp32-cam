@@ -1,0 +1,4 @@
+split,samples,person_fraction
+test,2000,0.4905
+train,12000,0.5
+val,2000,0.4945

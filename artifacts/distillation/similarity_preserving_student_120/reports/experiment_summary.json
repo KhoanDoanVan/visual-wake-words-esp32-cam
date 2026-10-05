@@ -1,0 +1,229 @@
+{
+  "experiment": "vww-similarity-preserving-kd-student-120",
+  "paper_algorithm": {
+    "method": "Similarity-Preserving Knowledge Distillation",
+    "teacher_layer": "conv_pw_13_relu",
+    "student_layer": "conv_pw_13_relu",
+    "relation": "row-L2-normalized sample Gram matrix",
+    "loss": "mean squared teacher/student relation difference",
+    "gamma": 18.60283654418748
+  },
+  "contract": {
+    "config_sha256": "adc639ca13ca3e8afb54a15264df9b16d16d3b98a45c139fb08cf88d56dbcb76",
+    "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+    "champion_sha256": "88e98014baab353bb6eb6df9280e4f993de34adf75dcb9546c8ba99047349845",
+    "paper_sha256": "1234b07ab4fabedd4cf079dbf4d1ee19a3a53ebf2fea06e7bd68db7a17ddd59a",
+    "seed": 42,
+    "teacher_size": [
+      160,
+      160
+    ],
+    "student_size": [
+      120,
+      120
+    ],
+    "batch_size": 32,
+    "tensorflow": "2.20.0",
+    "python": "3.10.13"
+  },
+  "gamma_calibration": {
+    "hard_gradient_norm": 8.984138488769531,
+    "raw_sp_gradient_norm": 0.04829445481300354,
+    "target_weighted_gradient_ratio": 0.1,
+    "gamma": 18.60283654418748
+  },
+  "quality": [
+    {
+      "model": "sp_control",
+      "samples": 2000,
+      "threshold": 0.305,
+      "accuracy": 0.7645,
+      "precision": 0.7297297297297297,
+      "recall": 0.8256880733944955,
+      "f1": 0.7747489239598279,
+      "roc_auc": 0.8615210090842793,
+      "pr_auc": 0.8620157048827322,
+      "specificity": 0.7055937193326791,
+      "confusion_matrix": [
+        [
+          719,
+          300
+        ],
+        [
+          171,
+          810
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.555,
+      "ece_10": 0.05338907028362155
+    },
+    {
+      "model": "similarity_preserving",
+      "samples": 2000,
+      "threshold": 0.34,
+      "accuracy": 0.759,
+      "precision": 0.7116200169635284,
+      "recall": 0.855249745158002,
+      "f1": 0.7768518518518519,
+      "roc_auc": 0.8632886472016398,
+      "pr_auc": 0.8636014693739074,
+      "specificity": 0.6663395485770363,
+      "confusion_matrix": [
+        [
+          679,
+          340
+        ],
+        [
+          142,
+          839
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.5895,
+      "ece_10": 0.016283267311751826
+    }
+  ],
+  "project_comparison": [
+    {
+      "model": "sp_control",
+      "samples": 2000,
+      "threshold": 0.305,
+      "accuracy": 0.7645,
+      "precision": 0.7297297297297297,
+      "recall": 0.8256880733944955,
+      "f1": 0.7747489239598279,
+      "roc_auc": 0.8615210090842793,
+      "pr_auc": 0.8620157048827322,
+      "specificity": 0.7055937193326791,
+      "confusion_matrix": [
+        [
+          719,
+          300
+        ],
+        [
+          171,
+          810
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.555,
+      "ece_10": 0.05338907028362155
+    },
+    {
+      "model": "similarity_preserving",
+      "samples": 2000,
+      "threshold": 0.34,
+      "accuracy": 0.759,
+      "precision": 0.7116200169635284,
+      "recall": 0.855249745158002,
+      "f1": 0.7768518518518519,
+      "roc_auc": 0.8632886472016398,
+      "pr_auc": 0.8636014693739074,
+      "specificity": 0.6663395485770363,
+      "confusion_matrix": [
+        [
+          679,
+          340
+        ],
+        [
+          142,
+          839
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.5895,
+      "ece_10": 0.016283267311751826
+    },
+    {
+      "model": "notebook03_champion",
+      "samples": 2000,
+      "threshold": 0.385,
+      "accuracy": 0.7815,
+      "precision": 0.7775510204081633,
+      "recall": 0.7767584097859327,
+      "f1": 0.7771545130035696,
+      "roc_auc": 0.8626033998273377,
+      "pr_auc": 0.8651025910820876,
+      "specificity": 0.7860647693817469,
+      "confusion_matrix": "[[801, 218], [219, 762]]",
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.49,
+      "ece_10": 0.0394338003993034
+    }
+  ],
+  "bootstrap": [
+    {
+      "metric": "pr_auc_delta",
+      "mean": 0.0015237099703614494,
+      "ci_low": -0.0038702632571853577,
+      "ci_high": 0.007485576531303872,
+      "probability_positive": 0.703
+    },
+    {
+      "metric": "f1_delta",
+      "mean": 0.002039406902033754,
+      "ci_low": -0.008680760064011844,
+      "ci_high": 0.0130035316391758,
+      "probability_positive": 0.65
+    }
+  ],
+  "relation_diagnostics": [
+    {
+      "model": "teacher",
+      "paper_relation_mse": 0.0,
+      "off_diagonal_relation_mse": 0.0,
+      "mean_same_class_similarity": 0.15473102033138275,
+      "mean_cross_class_similarity": 0.11947678029537201,
+      "class_relation_margin": 0.03525424003601074
+    },
+    {
+      "model": "sp_control",
+      "paper_relation_mse": 0.003223272506147623,
+      "off_diagonal_relation_mse": 0.002033763797953725,
+      "mean_same_class_similarity": 0.16928891837596893,
+      "mean_cross_class_similarity": 0.14987938106060028,
+      "class_relation_margin": 0.019409537315368652
+    },
+    {
+      "model": "similarity_preserving",
+      "paper_relation_mse": 0.0012272711610421538,
+      "off_diagonal_relation_mse": 0.0011563653824850917,
+      "mean_same_class_similarity": 0.15458150207996368,
+      "mean_cross_class_similarity": 0.12614548206329346,
+      "class_relation_margin": 0.028436020016670227
+    }
+  ],
+  "graph": [
+    {
+      "model": "sp_control",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    },
+    {
+      "model": "similarity_preserving",
+      "parameters": 218801,
+      "macs": 10487648,
+      "peak_int8_activation": 117136
+    }
+  ],
+  "gates": {
+    "internal_pr_auc_gain": true,
+    "internal_f1_retained": true,
+    "internal_specificity_retained": false,
+    "relation_alignment_gain": true,
+    "graph_identity": true,
+    "champion_pr_auc_matched": false,
+    "champion_f1_matched": false,
+    "accepted_internal": false,
+    "accepted_project": false,
+    "int8_parity": false,
+    "eligible_for_device": false
+  },
+  "int8_export": null,
+  "int8_metrics": null,
+  "float_to_int8_parity": null,
+  "physical_profile_complete": false
+}

@@ -1,0 +1,8 @@
+{
+  "pr_auc_gain": true,
+  "f1_retained": true,
+  "specificity_retained": true,
+  "feature_alignment_gain": true,
+  "graph_identity": true,
+  "accepted_float": true
+}

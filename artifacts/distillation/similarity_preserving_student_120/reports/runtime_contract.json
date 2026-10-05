@@ -1,0 +1,19 @@
+{
+  "config_sha256": "adc639ca13ca3e8afb54a15264df9b16d16d3b98a45c139fb08cf88d56dbcb76",
+  "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+  "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+  "champion_sha256": "88e98014baab353bb6eb6df9280e4f993de34adf75dcb9546c8ba99047349845",
+  "paper_sha256": "1234b07ab4fabedd4cf079dbf4d1ee19a3a53ebf2fea06e7bd68db7a17ddd59a",
+  "seed": 42,
+  "teacher_size": [
+    160,
+    160
+  ],
+  "student_size": [
+    120,
+    120
+  ],
+  "batch_size": 32,
+  "tensorflow": "2.20.0",
+  "python": "3.10.13"
+}

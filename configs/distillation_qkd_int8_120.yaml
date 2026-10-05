@@ -1,0 +1,68 @@
+project:
+  name: vww-qkd-int8-student-120
+  seed: 42
+
+paths:
+  manifest: data/processed/manifest.csv
+  teacher_model: artifacts/high_resolution_teacher_160/models/teacher_160.keras
+  float_student_model: artifacts/distillation/response_kd_alignment_student_120/models/same_view_lambda0.keras
+  float_student_quality: artifacts/distillation/response_kd_alignment_student_120/reports/quality_comparison.csv
+  qkd_paper: papers/distillation/08_qkd_quantization_aware_kd_2019.pdf
+  artifacts: artifacts/distillation/qkd_int8_student_120
+
+data:
+  teacher_size: [160, 160]
+  student_size: [120, 120]
+  channels: 3
+  batch_size: 32
+
+quantization:
+  mode: int8
+  weights_bits: 8
+  activations_bits: 8
+  representative_samples: 500
+  require_integer_only: true
+
+qkd:
+  temperature: 2.0
+  kd_weight: 1.0
+  teacher_fine_tune_last_layers: 30
+
+augmentation:
+  translation_fraction: 0.05
+  brightness_delta: 0.18
+  contrast_factor: 0.30
+  saturation_delta: 0.45
+  sensor_noise_stddev: 0.025
+
+training:
+  self_study_epochs: 8
+  co_study_epochs: 6
+  tutoring_epochs: 6
+  student_learning_rate: 0.00001
+  teacher_learning_rate: 0.000003
+  reduce_lr_patience: 2
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+  bootstrap_samples: 1000
+  desktop_latency_runs: 100
+  desktop_latency_warmup: 10
+
+acceptance_gate:
+  minimum_pr_auc_gain_over_hard_qat: 0.0
+  maximum_f1_drop_from_hard_qat: 0.005
+  maximum_specificity_drop_from_hard_qat: 0.01
+  maximum_pr_auc_drop_from_float: 0.005
+  maximum_float_to_int8_probability_mae: 0.03
+  require_integer_only: true
+
+export:
+  ptq_filename: student_120_champion_ptq_int8.tflite
+  hard_qat_filename: student_120_hard_qat_int8.tflite
+  fixed_teacher_filename: student_120_fixed_teacher_qat_kd_int8.tflite
+  qkd_filename: student_120_qkd_ss_cs_tu_int8.tflite

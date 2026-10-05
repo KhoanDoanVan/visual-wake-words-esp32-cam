@@ -1,0 +1,468 @@
+{
+  "experiment": "vww-qkd-int8-student-120",
+  "paper_method": {
+    "phases": [
+      "self-studying",
+      "co-studying",
+      "tutoring"
+    ],
+    "temperature": 2.0,
+    "student_loss": "CE + T^2 KL(teacher||student)",
+    "teacher_loss": "CE + T^2 KL(student||teacher)"
+  },
+  "contract": {
+    "config_sha256": "71318369a88e388400af945b85196c2047e6e49214d8227ac5aa205f28cc6d24",
+    "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+    "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+    "float_student_sha256": "88e98014baab353bb6eb6df9280e4f993de34adf75dcb9546c8ba99047349845",
+    "paper_sha256": "a3efc0f1b1f3ebfb49b82d53ba57ed8d3ecf12d16ed7d6322e64de82fa81ad6b",
+    "legacy_student_bridge_sha256": "b30f26e8da53d72d9800d1b3164b5453c85eda66d3bca330932d3fc44e0c7a41",
+    "legacy_teacher_bridge_sha256": "9f0eff44675f9832e5002b89e1416825b9019e1e87a1cdbf13eafc5524449df5",
+    "seed": 42,
+    "teacher_size": [
+      160,
+      160
+    ],
+    "student_size": [
+      120,
+      120
+    ],
+    "batch_size": 32,
+    "tensorflow": "2.20.0",
+    "tf_keras": "2.20.1",
+    "tfmot": "0.8.1"
+  },
+  "quality": [
+    {
+      "model": "float_champion",
+      "samples": 2000,
+      "threshold": 0.385,
+      "accuracy": 0.7815,
+      "precision": 0.7775510204081633,
+      "recall": 0.7767584097859327,
+      "f1": 0.7771545130035696,
+      "roc_auc": 0.8626033998273377,
+      "pr_auc": 0.86510250751637,
+      "specificity": 0.7860647693817469,
+      "confusion_matrix": [
+        [
+          801,
+          218
+        ],
+        [
+          219,
+          762
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.49,
+      "ece_10": 0.03943366440013051
+    },
+    {
+      "model": "ptq_int8",
+      "samples": 2000,
+      "threshold": 0.275,
+      "accuracy": 0.7615,
+      "precision": 0.7456140350877193,
+      "recall": 0.7798165137614679,
+      "f1": 0.7623318385650224,
+      "roc_auc": 0.8531384829923603,
+      "pr_auc": 0.8568493307692416,
+      "specificity": 0.7438665358194309,
+      "confusion_matrix": [
+        [
+          758,
+          261
+        ],
+        [
+          216,
+          765
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.513,
+      "ece_10": 0.098125
+    },
+    {
+      "model": "hard_qat_int8",
+      "samples": 2000,
+      "threshold": 0.01,
+      "accuracy": 0.4905,
+      "precision": 0.4905,
+      "recall": 1.0,
+      "f1": 0.6581683998658169,
+      "roc_auc": 0.5473560955504938,
+      "pr_auc": 0.522208788459455,
+      "specificity": 0.0,
+      "confusion_matrix": [
+        [
+          0,
+          1019
+        ],
+        [
+          0,
+          981
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 1.0,
+      "ece_10": 0.42545703125
+    },
+    {
+      "model": "fixed_teacher_qat_kd_int8",
+      "samples": 2000,
+      "threshold": 0.025,
+      "accuracy": 0.4975,
+      "precision": 0.49393326592517695,
+      "recall": 0.9959225280326198,
+      "f1": 0.6603582291314634,
+      "roc_auc": 0.5448421880298788,
+      "pr_auc": 0.525731754627244,
+      "specificity": 0.017664376840039256,
+      "confusion_matrix": [
+        [
+          18,
+          1001
+        ],
+        [
+          4,
+          977
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.989,
+      "ece_10": 0.3995625000000001
+    },
+    {
+      "model": "qkd_full_int8",
+      "samples": 2000,
+      "threshold": 0.05,
+      "accuracy": 0.496,
+      "precision": 0.4931437277805993,
+      "recall": 0.9898063200815495,
+      "f1": 0.6583050847457627,
+      "roc_auc": 0.5381047558168498,
+      "pr_auc": 0.52233618552715,
+      "specificity": 0.020608439646712464,
+      "confusion_matrix": [
+        [
+          21,
+          998
+        ],
+        [
+          10,
+          971
+        ]
+      ],
+      "positive_prevalence": 0.4905,
+      "predicted_positive_rate": 0.9845,
+      "ece_10": 0.37475
+    }
+  ],
+  "bootstrap": [
+    {
+      "metric": "pr_auc_delta",
+      "mean": 0.00020152836694802744,
+      "ci_low": -0.02097543639685612,
+      "ci_high": 0.02135475193482209,
+      "probability_positive": 0.511
+    },
+    {
+      "metric": "f1_delta",
+      "mean": 8.234608939417964e-05,
+      "ci_low": -0.003723755284724714,
+      "ci_high": 0.003486023482936517,
+      "probability_positive": 0.529
+    }
+  ],
+  "teacher_adaptation": [
+    {
+      "model": "teacher_original",
+      "samples": 2000,
+      "threshold": 0.365,
+      "accuracy": 0.8535,
+      "precision": 0.8438735177865613,
+      "recall": 0.8634984833164813,
+      "f1": 0.8535732133933034,
+      "roc_auc": 0.9324898312695835,
+      "pr_auc": 0.9418534594258288,
+      "specificity": 0.8437190900098912,
+      "confusion_matrix": [
+        [
+          853,
+          158
+        ],
+        [
+          135,
+          854
+        ]
+      ],
+      "positive_prevalence": 0.4945,
+      "predicted_positive_rate": 0.506
+    },
+    {
+      "model": "teacher_adapted",
+      "samples": 2000,
+      "threshold": 0.44,
+      "accuracy": 0.8485,
+      "precision": 0.8369351669941061,
+      "recall": 0.8614762386248737,
+      "f1": 0.8490284005979073,
+      "roc_auc": 0.9309026392193456,
+      "pr_auc": 0.9388480936341695,
+      "specificity": 0.8358061325420376,
+      "confusion_matrix": [
+        [
+          845,
+          166
+        ],
+        [
+          137,
+          852
+        ]
+      ],
+      "positive_prevalence": 0.4945,
+      "predicted_positive_rate": 0.509
+    }
+  ],
+  "parity": [
+    {
+      "model": "hard_qat_int8",
+      "qat_keras_to_tflite_mae": 0.41925238036271184,
+      "maximum_absolute_error": 0.9612826108932495
+    },
+    {
+      "model": "fixed_teacher_qat_kd_int8",
+      "qat_keras_to_tflite_mae": 0.4011516224220395,
+      "maximum_absolute_error": 0.9559544324874878
+    },
+    {
+      "model": "qkd_full_int8",
+      "qat_keras_to_tflite_mae": 0.3638895948752761,
+      "maximum_absolute_error": 0.9302473664283752
+    }
+  ],
+  "export": {
+    "ptq_int8": {
+      "size_bytes": 303304,
+      "input": {
+        "name": "serving_default_image:0",
+        "shape": [
+          1,
+          120,
+          120,
+          3
+        ],
+        "dtype": "int8",
+        "scale": 1.0000003576278687,
+        "zero_point": -128
+      },
+      "output": {
+        "name": "StatefulPartitionedCall:0",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "int8",
+        "scale": 0.00390625,
+        "zero_point": -128
+      },
+      "operators": [
+        "ADD",
+        "CONV_2D",
+        "DEPTHWISE_CONV_2D",
+        "FULLY_CONNECTED",
+        "LOGISTIC",
+        "MEAN",
+        "MUL",
+        "PAD"
+      ],
+      "sha256": "8350c8f62a02e19c353485994c04ed6926b5e6a446f04861a02deb424c830756",
+      "gzip_bytes": 220234,
+      "float_tensor_count": 0,
+      "float_tensors": [],
+      "integer_only": true
+    },
+    "hard_qat_int8": {
+      "size_bytes": 320952,
+      "input": {
+        "name": "serving_default_image:0",
+        "shape": [
+          1,
+          120,
+          120,
+          3
+        ],
+        "dtype": "int8",
+        "scale": 1.0000003576278687,
+        "zero_point": -128
+      },
+      "output": {
+        "name": "StatefulPartitionedCall:0",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "int8",
+        "scale": 0.00390625,
+        "zero_point": -128
+      },
+      "operators": [
+        "ADD",
+        "CONV_2D",
+        "DEPTHWISE_CONV_2D",
+        "FULLY_CONNECTED",
+        "LOGISTIC",
+        "MEAN",
+        "MUL",
+        "PAD"
+      ],
+      "sha256": "d42f70bfdfe8b92370527e9c17429ff80396c80f265899772ec65ea351fbf23e",
+      "gzip_bytes": 210607,
+      "float_tensor_count": 0,
+      "float_tensors": [],
+      "integer_only": true
+    },
+    "fixed_teacher_qat_kd_int8": {
+      "size_bytes": 320952,
+      "input": {
+        "name": "serving_default_image:0",
+        "shape": [
+          1,
+          120,
+          120,
+          3
+        ],
+        "dtype": "int8",
+        "scale": 1.0000003576278687,
+        "zero_point": -128
+      },
+      "output": {
+        "name": "StatefulPartitionedCall:0",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "int8",
+        "scale": 0.00390625,
+        "zero_point": -128
+      },
+      "operators": [
+        "ADD",
+        "CONV_2D",
+        "DEPTHWISE_CONV_2D",
+        "FULLY_CONNECTED",
+        "LOGISTIC",
+        "MEAN",
+        "MUL",
+        "PAD"
+      ],
+      "sha256": "a3bf6ae14be4606b31231d38764e27d3c0049134f07116a5473b71fd21b76ffb",
+      "gzip_bytes": 210613,
+      "float_tensor_count": 0,
+      "float_tensors": [],
+      "integer_only": true
+    },
+    "qkd_full_int8": {
+      "size_bytes": 320952,
+      "input": {
+        "name": "serving_default_image:0",
+        "shape": [
+          1,
+          120,
+          120,
+          3
+        ],
+        "dtype": "int8",
+        "scale": 1.0000003576278687,
+        "zero_point": -128
+      },
+      "output": {
+        "name": "StatefulPartitionedCall:0",
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "int8",
+        "scale": 0.00390625,
+        "zero_point": -128
+      },
+      "operators": [
+        "ADD",
+        "CONV_2D",
+        "DEPTHWISE_CONV_2D",
+        "FULLY_CONNECTED",
+        "LOGISTIC",
+        "MEAN",
+        "MUL",
+        "PAD"
+      ],
+      "sha256": "1e5d8b1461dd520926cb858343ca9e85a98d55f12a80f56cf28224e7dfc7d39d",
+      "gzip_bytes": 210619,
+      "float_tensor_count": 0,
+      "float_tensors": [],
+      "integer_only": true
+    }
+  },
+  "hardware": [
+    {
+      "model": "ptq_int8",
+      "parameters": 218801,
+      "estimated_macs_batch1": 10487648,
+      "estimated_peak_int8_activation_bytes": 160336,
+      "flatbuffer_bytes": 303304,
+      "desktop_median_ms": 0.1955,
+      "esp32_cam_invoke_ms": NaN,
+      "esp32_s3_invoke_ms": NaN,
+      "measured_tensor_arena_bytes": NaN,
+      "evidence": "static estimate + desktop measurement; physical fields pending"
+    },
+    {
+      "model": "hard_qat_int8",
+      "parameters": 218801,
+      "estimated_macs_batch1": 10487648,
+      "estimated_peak_int8_activation_bytes": 160336,
+      "flatbuffer_bytes": 320952,
+      "desktop_median_ms": 0.3630835,
+      "esp32_cam_invoke_ms": NaN,
+      "esp32_s3_invoke_ms": NaN,
+      "measured_tensor_arena_bytes": NaN,
+      "evidence": "static estimate + desktop measurement; physical fields pending"
+    },
+    {
+      "model": "fixed_teacher_qat_kd_int8",
+      "parameters": 218801,
+      "estimated_macs_batch1": 10487648,
+      "estimated_peak_int8_activation_bytes": 160336,
+      "flatbuffer_bytes": 320952,
+      "desktop_median_ms": 0.36243749999999997,
+      "esp32_cam_invoke_ms": NaN,
+      "esp32_s3_invoke_ms": NaN,
+      "measured_tensor_arena_bytes": NaN,
+      "evidence": "static estimate + desktop measurement; physical fields pending"
+    },
+    {
+      "model": "qkd_full_int8",
+      "parameters": 218801,
+      "estimated_macs_batch1": 10487648,
+      "estimated_peak_int8_activation_bytes": 160336,
+      "flatbuffer_bytes": 320952,
+      "desktop_median_ms": 0.362458,
+      "esp32_cam_invoke_ms": NaN,
+      "esp32_s3_invoke_ms": NaN,
+      "measured_tensor_arena_bytes": NaN,
+      "evidence": "static estimate + desktop measurement; physical fields pending"
+    }
+  ],
+  "gates": {
+    "pr_auc_gain_over_hard_qat": true,
+    "f1_retained_vs_hard_qat": true,
+    "specificity_retained_vs_hard_qat": true,
+    "float_pr_auc_retained": false,
+    "qat_tflite_parity": false,
+    "integer_only": true,
+    "accepted_desktop": false,
+    "eligible_for_device": false
+  },
+  "physical_profile_complete": false
+}

@@ -1,0 +1,22 @@
+{
+  "config_sha256": "71318369a88e388400af945b85196c2047e6e49214d8227ac5aa205f28cc6d24",
+  "manifest_sha256": "6e25ac1d8c6b98ccc54f188e7d38ce34c9c711d1bc2242f15517680652e38704",
+  "teacher_sha256": "8f8e0d7035e58abb710f8472ca5869bc14ebbd6dfea03ca965f86f22353ad126",
+  "float_student_sha256": "88e98014baab353bb6eb6df9280e4f993de34adf75dcb9546c8ba99047349845",
+  "paper_sha256": "a3efc0f1b1f3ebfb49b82d53ba57ed8d3ecf12d16ed7d6322e64de82fa81ad6b",
+  "legacy_student_bridge_sha256": "b30f26e8da53d72d9800d1b3164b5453c85eda66d3bca330932d3fc44e0c7a41",
+  "legacy_teacher_bridge_sha256": "9f0eff44675f9832e5002b89e1416825b9019e1e87a1cdbf13eafc5524449df5",
+  "seed": 42,
+  "teacher_size": [
+    160,
+    160
+  ],
+  "student_size": [
+    120,
+    120
+  ],
+  "batch_size": 32,
+  "tensorflow": "2.20.0",
+  "tf_keras": "2.20.1",
+  "tfmot": "0.8.1"
+}

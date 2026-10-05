@@ -1,0 +1,5 @@
+model,parameters,estimated_macs_batch1,estimated_peak_int8_activation_bytes,flatbuffer_bytes,desktop_median_ms,esp32_cam_invoke_ms,esp32_s3_invoke_ms,measured_tensor_arena_bytes,evidence
+ptq_int8,218801,10487648,160336,303304,0.1955,,,,static estimate + desktop measurement; physical fields pending
+hard_qat_int8,218801,10487648,160336,320952,0.3630835,,,,static estimate + desktop measurement; physical fields pending
+fixed_teacher_qat_kd_int8,218801,10487648,160336,320952,0.36243749999999997,,,,static estimate + desktop measurement; physical fields pending
+qkd_full_int8,218801,10487648,160336,320952,0.362458,,,,static estimate + desktop measurement; physical fields pending

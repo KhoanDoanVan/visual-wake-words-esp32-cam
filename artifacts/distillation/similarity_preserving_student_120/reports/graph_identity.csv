@@ -1,0 +1,3 @@
+model,parameters,macs,peak_int8_activation
+sp_control,218801,10487648,117136
+similarity_preserving,218801,10487648,117136

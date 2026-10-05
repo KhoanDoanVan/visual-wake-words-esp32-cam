@@ -1,0 +1,70 @@
+project:
+  name: vww-fitnets-student-120
+  seed: 42
+
+paths:
+  manifest: data/processed/manifest.csv
+  teacher_model: artifacts/high_resolution_teacher_160/models/teacher_160.keras
+  reference_control_model: artifacts/distillation/response_kd_alignment_student_120/models/same_view_lambda0.keras
+  fitnets_paper: papers/distillation/02_fitnets_hints_for_thin_deep_nets_2014.pdf
+  artifacts: artifacts/distillation/fitnets_student_120
+
+data:
+  teacher_size: [160, 160]
+  student_size: [120, 120]
+  channels: 3
+  batch_size: 32
+  feature_diagnostic_samples: 128
+
+student:
+  architecture: MobileNetV1
+  width_multiplier: 0.25
+  initialization: random
+  dropout: 0.1
+  l2: 0.00001
+
+fitnets:
+  teacher_hint_layer: conv_pw_6_relu
+  student_guided_layer: conv_pw_6_relu
+  regressor_kernel_size: 1
+  regressor_activation: relu
+  hint_loss: raw_mse
+  hint_loss_element_normalization: true
+
+augmentation:
+  translation_fraction: 0.05
+  brightness_delta: 0.18
+  contrast_factor: 0.30
+  saturation_delta: 0.45
+  sensor_noise_stddev: 0.025
+
+training:
+  hint_epochs: 12
+  hint_learning_rate: 0.0003
+  stage2_epochs: 20
+  stage2_learning_rate: 0.0003
+  temperature: 3.0
+  lambda_start: 4.0
+  lambda_end: 1.0
+  early_stopping_patience: 6
+  reduce_lr_patience: 3
+  monitor: val_pr_auc
+
+evaluation:
+  threshold_objective: f1
+  minimum_recall: 0.80
+  false_positive_cost: 1.0
+  false_negative_cost: 2.0
+  bootstrap_samples: 1000
+
+acceptance_gate:
+  minimum_pr_auc_gain: 0.0
+  maximum_f1_drop: 0.005
+  maximum_specificity_drop: 0.01
+  minimum_cka_gain: 0.0
+  maximum_float_to_int8_probability_mae: 0.03
+  require_graph_identity: true
+
+export:
+  representative_samples: 500
+  model_filename: student_120_fitnets_int8.tflite

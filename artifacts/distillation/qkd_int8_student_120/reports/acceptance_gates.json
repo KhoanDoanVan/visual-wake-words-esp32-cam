@@ -1,0 +1,10 @@
+{
+  "pr_auc_gain_over_hard_qat": true,
+  "f1_retained_vs_hard_qat": true,
+  "specificity_retained_vs_hard_qat": true,
+  "float_pr_auc_retained": false,
+  "qat_tflite_parity": false,
+  "integer_only": true,
+  "accepted_desktop": false,
+  "eligible_for_device": false
+}

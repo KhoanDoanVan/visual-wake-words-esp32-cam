@@ -1,0 +1,162 @@
+{
+  "ptq_int8": {
+    "size_bytes": 303304,
+    "input": {
+      "name": "serving_default_image:0",
+      "shape": [
+        1,
+        120,
+        120,
+        3
+      ],
+      "dtype": "int8",
+      "scale": 1.0000003576278687,
+      "zero_point": -128
+    },
+    "output": {
+      "name": "StatefulPartitionedCall:0",
+      "shape": [
+        1,
+        1
+      ],
+      "dtype": "int8",
+      "scale": 0.00390625,
+      "zero_point": -128
+    },
+    "operators": [
+      "ADD",
+      "CONV_2D",
+      "DEPTHWISE_CONV_2D",
+      "FULLY_CONNECTED",
+      "LOGISTIC",
+      "MEAN",
+      "MUL",
+      "PAD"
+    ],
+    "sha256": "8350c8f62a02e19c353485994c04ed6926b5e6a446f04861a02deb424c830756",
+    "gzip_bytes": 220234,
+    "float_tensor_count": 0,
+    "float_tensors": [],
+    "integer_only": true
+  },
+  "hard_qat_int8": {
+    "size_bytes": 320952,
+    "input": {
+      "name": "serving_default_image:0",
+      "shape": [
+        1,
+        120,
+        120,
+        3
+      ],
+      "dtype": "int8",
+      "scale": 1.0000003576278687,
+      "zero_point": -128
+    },
+    "output": {
+      "name": "StatefulPartitionedCall:0",
+      "shape": [
+        1,
+        1
+      ],
+      "dtype": "int8",
+      "scale": 0.00390625,
+      "zero_point": -128
+    },
+    "operators": [
+      "ADD",
+      "CONV_2D",
+      "DEPTHWISE_CONV_2D",
+      "FULLY_CONNECTED",
+      "LOGISTIC",
+      "MEAN",
+      "MUL",
+      "PAD"
+    ],
+    "sha256": "d42f70bfdfe8b92370527e9c17429ff80396c80f265899772ec65ea351fbf23e",
+    "gzip_bytes": 210607,
+    "float_tensor_count": 0,
+    "float_tensors": [],
+    "integer_only": true
+  },
+  "fixed_teacher_qat_kd_int8": {
+    "size_bytes": 320952,
+    "input": {
+      "name": "serving_default_image:0",
+      "shape": [
+        1,
+        120,
+        120,
+        3
+      ],
+      "dtype": "int8",
+      "scale": 1.0000003576278687,
+      "zero_point": -128
+    },
+    "output": {
+      "name": "StatefulPartitionedCall:0",
+      "shape": [
+        1,
+        1
+      ],
+      "dtype": "int8",
+      "scale": 0.00390625,
+      "zero_point": -128
+    },
+    "operators": [
+      "ADD",
+      "CONV_2D",
+      "DEPTHWISE_CONV_2D",
+      "FULLY_CONNECTED",
+      "LOGISTIC",
+      "MEAN",
+      "MUL",
+      "PAD"
+    ],
+    "sha256": "a3bf6ae14be4606b31231d38764e27d3c0049134f07116a5473b71fd21b76ffb",
+    "gzip_bytes": 210613,
+    "float_tensor_count": 0,
+    "float_tensors": [],
+    "integer_only": true
+  },
+  "qkd_full_int8": {
+    "size_bytes": 320952,
+    "input": {
+      "name": "serving_default_image:0",
+      "shape": [
+        1,
+        120,
+        120,
+        3
+      ],
+      "dtype": "int8",
+      "scale": 1.0000003576278687,
+      "zero_point": -128
+    },
+    "output": {
+      "name": "StatefulPartitionedCall:0",
+      "shape": [
+        1,
+        1
+      ],
+      "dtype": "int8",
+      "scale": 0.00390625,
+      "zero_point": -128
+    },
+    "operators": [
+      "ADD",
+      "CONV_2D",
+      "DEPTHWISE_CONV_2D",
+      "FULLY_CONNECTED",
+      "LOGISTIC",
+      "MEAN",
+      "MUL",
+      "PAD"
+    ],
+    "sha256": "1e5d8b1461dd520926cb858343ca9e85a98d55f12a80f56cf28224e7dfc7d39d",
+    "gzip_bytes": 210619,
+    "float_tensor_count": 0,
+    "float_tensors": [],
+    "integer_only": true
+  }
+}

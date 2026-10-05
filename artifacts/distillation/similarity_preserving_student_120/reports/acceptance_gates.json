@@ -1,0 +1,13 @@
+{
+  "internal_pr_auc_gain": true,
+  "internal_f1_retained": true,
+  "internal_specificity_retained": false,
+  "relation_alignment_gain": true,
+  "graph_identity": true,
+  "champion_pr_auc_matched": false,
+  "champion_f1_matched": false,
+  "accepted_internal": false,
+  "accepted_project": false,
+  "int8_parity": false,
+  "eligible_for_device": false
+}
