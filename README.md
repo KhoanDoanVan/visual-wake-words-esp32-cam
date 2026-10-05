@@ -1,305 +1,621 @@
-# Visual Wake Words for ESP32-CAM
+# Visual Wake Words on ESP32
 
-Notebook-first pipeline for training a **person / no-person** Visual Wake Word model on real MS COCO 2017 images and exporting it as a full-INT8 TensorFlow Lite Micro model for an AI-Thinker ESP32-CAM.
+An evidence-driven TinyML project for detecting **person / no person** from an OV3660 camera,
+exporting full-INT8 TensorFlow Lite Micro models, and measuring the complete result on
+ESP32-CAM and ESP32-S3 hardware.
 
-The next optimization phase is documented in the
-[knowledge-distillation research and experiment plan](optimization/distillation/DISTILLATION_TECHNIQUES_PLAN.md).
-It freezes the 160x160 teacher and 120x120 student contracts, reviews the principal distillation
-papers, and defines the notebook sequence from hard-label control through physical ESP32 profiling.
+This repository treats model quality, numerical conversion, memory, latency, and camera-domain
+behavior as separate gates. A model is not considered optimized merely because it is sparse,
+quantized, smaller on disk, or more accurate on a desktop.
 
-> Fast-80 is the frozen pre-pruning reference. It has been trained, exported, compiled, flashed, and smoke-tested on the connected board.
-> The board currently runs Notebook 13's `paper_iterative__s50` INT8 candidate at threshold 0.47 with the GPIO4 white flash enabled for stabilized person detection.
+## Contents
 
-## Frozen Fast-80 reference (80x80)
+- [Project status](#project-status)
+- [Detailed engineering reports](#detailed-engineering-reports)
+- [System architecture](#system-architecture)
+- [Experimental contracts](#experimental-contracts)
+- [Baseline and resolution optimization](#baseline-and-resolution-optimization)
+- [Quantization](#quantization)
+  - [Full-INT8 affine quantization](#full-int8-affine-quantization)
+  - [Post-training quantization](#post-training-quantization)
+  - [Quantization-aware training](#quantization-aware-training)
+  - [Quantization-aware knowledge distillation](#quantization-aware-knowledge-distillation)
+- [Pruning](#pruning)
+- [Knowledge distillation](#knowledge-distillation)
+- [Physical deployment](#physical-deployment)
+- [Conclusions and consequences](#conclusions-and-consequences)
+- [Repository map](#repository-map)
+- [Reproduction](#reproduction)
+- [Limitations](#limitations)
 
-| Item | Result |
-|---|---:|
-| Dataset | 12,000 train / 2,000 validation / 2,000 held-out test images |
-| Model | Tiny MobileNetV1, width multiplier 0.25 |
-| Input | 80 × 80 × 3 RGB, INT8 |
-| Parameters | 111,793 |
-| Compute | 3.994M MACs/image (29% below the 96x96 baseline) |
-| Peak live INT8 activation estimate | 50 KiB (31% below the 96x96 baseline) |
-| Fine-tuning | 8 epochs; validation PR-AUC 0.7831 |
-| Offline COCO threshold | 0.27, selected on validation data |
-| Device threshold | 0.44 after fixed-point camera preprocessing |
-| Dormant activation gate | score positive + motion ≥2.0, then 2-of-3 votes |
-| INT8 test accuracy | 65.75% |
-| INT8 test precision / recall | 60.10% / 89.81% |
-| INT8 test F1 / specificity | 72.01% / 42.59% |
-| INT8 test ROC-AUC / PR-AUC | 0.7882 / 0.7873 |
-| INT8 model size | 167,976 bytes (164.0 KiB) |
-| Float–INT8 probability MAE | 0.0082 |
-| Measured ESP32 inference, instrumented | 416.8 ms mean |
-| Camera preprocessing | 59.8–61.3 ms, no additional image buffer |
-| Full steady frame period | 597–601 ms (1.66–1.68 fps, including 100 ms delay) |
+## Project status
 
-The float32 memory row is a graph-level baseline, not a measured TFLite Micro tensor-arena requirement.
+| Area | Current result | Decision |
+|---|---|---|
+| Camera task | Binary VWW from COCO-derived RGB images | Working |
+| Validated camera platform | AI-Thinker-pinout ESP32-CAM + OV3660 | Complete pipeline working |
+| Performance platform | ESP32-S3 rev 0.2, 16 MiB flash, 8 MiB PSRAM | Model and camera probes working |
+| ESP32-CAM runtime reference | Fast-80 full INT8 | 416.8 ms production-oriented Invoke |
+| Current pruning artifact | Fast-80 iterative unstructured `s50` | Deployed; no causal sparse-speed claim |
+| Strongest Student-120 float model | Notebook 03 `same_view_lambda0` | F1 0.7772, PR-AUC 0.8651 |
+| Reliable Student-120 integer path | PTQ INT8 | F1 0.7623, PR-AUC 0.8568 in latest contract |
+| QAT/QKD export | Integer-only but numerically invalid | Blocked pending Conv-BN/QAT repair |
+| Current pruning experiment | Notebook 14 PatDNN-inspired pattern pruning | Implemented; awaiting execution |
 
-The ESP-IDF firmware also includes a device-hosted live camera and inference dashboard. Connect to its `VWW-Camera` Wi-Fi network and open `http://192.168.4.1`; person is blue, non-person is red, and low-light/camera faults are reported explicitly. The dashboard also shows raw score, temporal votes, frame motion, and whether dormant activation is blocked by a static scene. With `kFlashLedEnabled = true`, GPIO4 drives the white flash only while the stabilized inference state is `person`. See [the firmware guide](firmware/esp32_cam_vww/README.md) and [build report](firmware/esp32_cam_vww/BUILD_REPORT.md) for details.
+The current pruning order is defined by the
+[pruning experiment plan](optimization/pruning/PRUNING_TECHNIQUES_PLAN.md). The completed
+distillation series and its negative/positive results are consolidated in the
+[Knowledge Distillation experiment report](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md).
 
-The connected ESP32-S3 rev 0.2 has now been physically profiled with the exact Fast80
-artifact. It has 16 MiB flash, 8 MiB mapped octal PSRAM, and runs batch-one Invoke in
-67.105 ms with an internal arena or 73.478 ms with a PSRAM arena. See the
-[ESP32-S3 capacity report](artifacts/device_profiles/esp32_s3_capacity/DEVICE_CAPACITY_REPORT.md)
-and [ESP32-CAM versus ESP32-S3 comparison](firmware/ESP32_CAM_VS_ESP32_S3_HARDWARE_REPORT.md)
-for the memory, bandwidth, per-layer, numerical-parity, and porting results.
+## Detailed engineering reports
 
-Fast-80 keeps the branch-free, depthwise-separable MobileNetV1 structure used for Visual Wake Words and reduces spatial resolution from 96 to 80. The currently deployed iterative-s50 candidate preserves that topology and input contract while setting 50% of kernel weights to zero. The dataset and camera pipeline remain unchanged: firmware conditions the real OV3660 input with fixed-point chroma reduction and a 256-byte gamma LUT, then uses a motion-gated 2-of-3 activation rule. Run `python scripts/train_fast_vww.py --config configs/fast_80.yaml` only to reproduce the frozen pre-pruning reference.
+The README is the project entry point and evidence map. Technique-level derivations,
+implementation decisions, controls, results, failure analysis, and artifact indexes live in
+dedicated reports:
 
-## Complete 96x96 versus 80x80 comparison
+| Optimization family | Detailed report | Coverage |
+|---|---|---|
+| Quantization | [Quantization experiment report](optimization/quantization/QUANTIZATION_EXPERIMENT_REPORT.md) | PTQ, W8A8 QAT, fixed-teacher QAT+KD, staged QKD |
+| Pruning | [Pruning experiment report](optimization/pruning/PRUNING_EXPERIMENT_REPORT.md) | Granularity audit, executed unstructured magnitude experiment, and registered Notebook 14 protocol |
+| Pruning research plan | [Pruning techniques plan](optimization/pruning/PRUNING_TECHNIQUES_PLAN.md) | Pattern through second-order pruning and device-aware allocation |
+| Knowledge distillation | [Distillation experiment report](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md) | Every completed Notebook 01–07 technique |
+| Physical hardware | [ESP32-CAM versus ESP32-S3](firmware/ESP32_CAM_VS_ESP32_S3_HARDWARE_REPORT.md) | Capacity, camera, memory, kernels, and same-model profiling |
 
-This is a controlled comparison of the original `baseline_96` model and the deployed
-`fast_80` model. Both use the same Tiny MobileNetV1-style depthwise-separable topology,
-width multiplier `0.25`, COCO-derived train/validation/test splits, full-INT8 export, ESP32-CAM,
-and batch size one. The optimized version changes the input and intermediate spatial sizes,
-but does not reduce channel counts or parameter count.
+## Experimental contracts
 
-The accuracy rows use the same 2,000-image held-out test set. Each model uses the threshold
-selected on its own validation results. Device results use 20 measured invocations after two
-warm-ups on the same board and include the same lightweight per-operator profiler hooks.
+### Dataset and evaluation
 
-### Headline result
+| Split | Images | Person fraction |
+|---|---:|---:|
+| Training | 12,000 | 50.00% |
+| Validation | 2,000 | approximately 49.45% |
+| Held-out test | 2,000 | 49.05% |
 
-| Result | Baseline 96 | Fast 80 | Change |
-|---|---:|---:|---:|
-| Input tensor | 96x96x3 | 80x80x3 | 30.6% fewer input elements |
-| MACs / inference | 5,616,256 | 3,993,536 | **-1,622,720 (-28.9%)** |
-| Instrumented device inference | 640.534 ms | 455.546 ms | **-184.988 ms (-28.9%)** |
-| Actual TFLM arena use | 91,596 B | 69,068 B | **-22,528 B (-24.6%)** |
-| Fused-graph live activation peak | 55,296 B | 38,400 B | **-16,896 B (-30.6%)** |
-| Test F1 | 72.34% | 72.01% | **-0.33 percentage points** |
-| Test recall | 82.36% | 89.81% | **+7.44 percentage points** |
-| Test specificity | 56.33% | 42.59% | **-13.74 percentage points** |
+The validation split selects decision thresholds, early stopping, pruning ratios, and
+hyperparameters. The test split is opened only after candidate selection. Reports include
+accuracy, precision, recall, specificity, F1, ROC-AUC, PR-AUC, calibration, confusion matrices,
+and predicted-person rate.
 
-The 80x80 version therefore preserves almost all baseline F1 while removing about 29% of
-compute and instrumented latency. Its main accuracy cost is more false-positive `person`
-predictions, reflected by lower specificity and the lower selected threshold.
+### Model families
 
-![Whole-model comparison across compute, latency, memory, and accuracy](artifacts/device_profiles/whole_model_comparison.png)
+| Model | Input | Parameters | MACs | Primary role |
+|---|---:|---:|---:|---|
+| Teacher-160, MobileNetV1 alpha 0.50 | 160x160x3 | 830,049 | 76.01 M | Distillation teacher |
+| Student-120, MobileNetV1 alpha 0.25 | 120x120x3 | 218,801 | 10.49 M | Accuracy-oriented student |
+| Baseline-96 | 96x96x3 | 111,793 | 5.62 M | Original MCU reference |
+| Fast-80 | 80x80x3 | 111,793 | 3.99 M | Frozen pruning/device reference |
 
-### Model, storage, and physical-device latency
+### Evidence levels
 
-| Metric | Baseline 96 | Fast 80 | Absolute change | Relative change |
-|---|---:|---:|---:|---:|
-| Parameters | 111,793 | 111,793 | 0 | 0.0% |
-| TFLite FlatBuffer | 167,976 B | 167,976 B | 0 B | 0.0% |
-| Flash-resident model constants | 111,806 B | 111,806 B | 0 B | 0.0% |
-| Fused TFLite operators | 26 | 26 | 0 | 0.0% |
-| MACs / inference | 5,616,256 | 3,993,536 | -1,622,720 | -28.9% |
-| Instrumented Invoke mean | 640.534 ms | 455.546 ms | -184.988 ms | -28.9% |
-| Instrumented Invoke range | 638.395-644.099 ms | 453.364-459.697 ms | — | — |
-| Sum of operator means | 639.423 ms | 454.558 ms | -184.865 ms | -28.9% |
-| Dispatch/profiler remainder | 1.111 ms | 0.989 ms | -0.122 ms | -11.0% |
-| Effective compute throughput | 8.768 MMAC/s | 8.766 MMAC/s | -0.002 MMAC/s | ~0.0% |
-| Inference-only rate, derived | 1.56/s | 2.20/s | +0.64/s | +40.6% |
-
-The equal parameter and FlatBuffer sizes are expected: spatial resolution changes activation
-shapes and the number of convolution positions, not the number of convolution weights. Nearly
-identical MMAC/s confirms that the latency reduction comes from doing less work rather than a
-faster kernel. The rates above exclude capture, preprocessing, web serving, state logic, and
-the task delay, so they are not end-to-end camera FPS.
-
-The latest production-oriented 80x80 firmware is a separate measurement: **416.8 ms** mean
-Invoke, **59.8-61.3 ms** preprocessing, and **1.66-1.68 complete frames/s** including the
-intentional 100 ms delay. It should not be substituted into the controlled A/B table because
-the firmware and profiler revision differ from the saved two-model experiment.
-
-### SRAM, PSRAM, activations, and tensor arena
-
-| Metric | Baseline 96 | Fast 80 | Absolute change | Relative change |
-|---|---:|---:|---:|---:|
-| Input tensor | 27,648 B | 19,200 B | -8,448 B | -30.6% |
-| Keras graph peak INT8 estimate | 73,728 B | 51,200 B | -22,528 B | -30.6% |
-| Exact fused-TFLite live peak | 55,296 B | 38,400 B | -16,896 B | -30.6% |
-| TFLM arena actually used | 91,596 B | 69,068 B | -22,528 B | -24.6% |
-| TFLM arena reserved in PSRAM | 358,400 B | 358,400 B | 0 B | 0.0% |
-| Arena headroom | 266,804 B | 289,332 B | +22,528 B | +8.4% |
-| Arena utilization | 25.6% | 19.3% | -6.3 percentage points | -24.6% |
-| Arena use beyond live tensors | 36,300 B | 30,668 B | -5,632 B | -15.5% |
-| Internal SRAM free at ready | 66,867 B | 66,867 B | 0 B | 0.0% |
-| Largest internal SRAM block | 61,440 B | 61,440 B | 0 B | 0.0% |
-| Mapped PSRAM free at ready | 3,378,736 B | 3,387,184 B | +8,448 B | +0.3% |
-| PSRAM consumed to ready | 813,008 B | 804,560 B | -8,448 B | -1.0% |
-| PSRAM use with one MJPEG client | 997,328 B | 988,880 B | -8,448 B | -0.8% |
-
-![Memory hierarchy comparison](artifacts/device_profiles/memory_hierarchy_comparison.png)
-
-These memory numbers are nested, not additive. Live activations are inside actual arena use,
-and actual arena use is inside the 358,400-byte PSRAM reservation. The remaining arena use is
-persistent tensors, scratch buffers, allocator metadata, alignment, and planner decisions.
-Model constants stay in flash. The optional 184,320-byte MJPEG client buffer is not included
-in the ready-state snapshot. Internal SRAM does not change because the arena remains in PSRAM;
-the largest free internal block is also too small for either measured arena requirement.
-
-### Held-out full-INT8 accuracy
-
-| Metric | Baseline 96 @ 0.34 | Fast 80 @ 0.27 | Absolute change | Relative change |
-|---|---:|---:|---:|---:|
-| Accuracy | 69.10% | 65.75% | -3.35 points | -4.8% |
-| Precision | 64.49% | 60.10% | -4.39 points | -6.8% |
-| Recall | 82.36% | 89.81% | +7.44 points | +9.0% |
-| Specificity | 56.33% | 42.59% | -13.74 points | -24.4% |
-| F1 | 72.34% | 72.01% | -0.33 points | -0.5% |
-| ROC-AUC | 80.09% | 78.82% | -1.28 points | -1.6% |
-| PR-AUC | 80.34% | 78.73% | -1.62 points | -2.0% |
-| Validation-selected threshold | 0.34 | 0.27 | -0.07 | — |
-
-| Test outcome (2,000 images) | Baseline 96 | Fast 80 | Change |
-|---|---:|---:|---:|
-| True person detected (TP) | 808 | 881 | +73 |
-| Person missed (FN) | 173 | 100 | -73 |
-| No-person correct (TN) | 574 | 434 | -140 |
-| No-person called person (FP) | 445 | 585 | +140 |
-
-![Held-out accuracy comparison](artifacts/device_profiles/accuracy_comparison.png)
-
-The threshold-dependent result favors recall: fast 80 misses fewer people, but fires on more
-no-person images. These are COCO-domain numbers and do not quantify the OV3660 domain shift.
-The deployed `0.44` threshold, fixed-point camera transform, motion gate, and 2-of-3 voting are
-device policy and must not be compared directly with the offline `0.27` test threshold.
-
-### Every fused operator on the ESP32-CAM
-
-The table below contains all 26 deployed TFLite operators in execution order. Activation I/O
-is input plus output tensor traffic; it is a static byte count, not an additional allocation.
-The model uses batch size one in both cases. Positive saved time means fast 80 is quicker.
-
-<details>
-<summary>Show the complete per-operator latency and activation comparison</summary>
-
-| # | Fused operator | Baseline ms | Fast 80 ms | Saved ms | Latency reduction | Activation I/O, 96 -> 80 |
-|---:|---|---:|---:|---:|---:|---:|
-| 0 | MUL | 17.881 | 12.878 | 5.004 | 28.0% | 55,296 -> 38,400 B |
-| 1 | ADD | 37.718 | 24.752 | 12.967 | 34.4% | 55,296 -> 38,400 B |
-| 2 | CONV_2D | 69.301 | 47.748 | 21.553 | 31.1% | 46,080 -> 32,000 B |
-| 3 | DEPTHWISE_CONV_2D | 23.921 | 16.961 | 6.960 | 29.1% | 36,864 -> 25,600 B |
-| 4 | CONV_2D | 49.573 | 34.592 | 14.981 | 30.2% | 55,296 -> 38,400 B |
-| 5 | DEPTHWISE_CONV_2D | 14.199 | 9.586 | 4.613 | 32.5% | 46,080 -> 32,000 B |
-| 6 | CONV_2D | 79.710 | 54.282 | 25.428 | 31.9% | 27,648 -> 19,200 B |
-| 7 | DEPTHWISE_CONV_2D | 23.319 | 15.163 | 8.156 | 35.0% | 36,864 -> 25,600 B |
-| 8 | CONV_2D | 46.937 | 31.589 | 15.348 | 32.7% | 36,864 -> 25,600 B |
-| 9 | DEPTHWISE_CONV_2D | 7.289 | 5.066 | 2.223 | 30.5% | 23,040 -> 16,000 B |
-| 10 | CONV_2D | 22.166 | 15.613 | 6.553 | 29.6% | 13,824 -> 9,600 B |
-| 11 | DEPTHWISE_CONV_2D | 10.015 | 6.770 | 3.246 | 32.4% | 18,432 -> 12,800 B |
-| 12 | CONV_2D | 40.366 | 27.989 | 12.376 | 30.7% | 18,432 -> 12,800 B |
-| 13 | DEPTHWISE_CONV_2D | 3.070 | 2.205 | 0.865 | 28.2% | 11,520 -> 8,000 B |
-| 14 | CONV_2D | 24.383 | 15.399 | 8.984 | 36.8% | 6,912 -> 4,800 B |
-| 15 | DEPTHWISE_CONV_2D | 5.224 | 3.696 | 1.528 | 29.3% | 9,216 -> 6,400 B |
-| 16 | CONV_2D | 37.430 | 27.314 | 10.116 | 27.0% | 9,216 -> 6,400 B |
-| 17 | DEPTHWISE_CONV_2D | 5.114 | 3.810 | 1.304 | 25.5% | 9,216 -> 6,400 B |
-| 18 | CONV_2D | 38.174 | 27.155 | 11.020 | 28.9% | 9,216 -> 6,400 B |
-| 19 | DEPTHWISE_CONV_2D | 6.198 | 5.038 | 1.160 | 18.7% | 9,216 -> 6,400 B |
-| 20 | CONV_2D | 37.336 | 26.940 | 10.395 | 27.8% | 9,216 -> 6,400 B |
-| 21 | DEPTHWISE_CONV_2D | 1.879 | 1.866 | 0.013 | 0.7% | 5,760 -> 4,352 B |
-| 22 | CONV_2D | 34.461 | 34.490 | -0.029 | -0.1% | 3,456 -> 3,456 B |
-| 23 | MEAN | 3.143 | 3.124 | 0.019 | 0.6% | 2,560 -> 2,560 B |
-| 24 | FULLY_CONNECTED | 0.254 | 0.212 | 0.042 | 16.4% | 257 -> 257 B |
-| 25 | LOGISTIC | 0.363 | 0.320 | 0.043 | 11.9% | 2 -> 2 B |
-
-</details>
-
-![All operator latency measurements](artifacts/device_profiles/operator_latency_comparison.png)
-
-![All operator activation-memory measurements](artifacts/device_profiles/operator_memory_comparison.png)
-
-Operators 2-20 account for most of the useful spatial reduction. Operators 21-25 see little
-or no benefit because both networks have already reached the same final 3x3 and scalar shapes.
-The largest individual saving is operator 6 (`CONV_2D`) at 25.428 ms. The complete machine-
-readable CSV additionally records every tensor shape, constant size, MAC estimate, live-memory
-state, and unrounded value.
-
-### Comparison artifacts and reproducibility
-
-| Artifact | Contents |
+| Claim | Required evidence |
 |---|---|
-| [Model comparison report](artifacts/device_profiles/MODEL_VERSION_COMPARISON.md) | Generated summary and interpretation |
-| [Whole-model CSV](artifacts/device_profiles/model_version_comparison.csv) | Unrounded compute, memory, latency, and accuracy values |
-| [Memory CSV](artifacts/device_profiles/memory_version_comparison.csv) | Memory hierarchy and nesting data |
-| [Every-operator CSV](artifacts/device_profiles/operator_version_comparison.csv) | Unrounded latency, MAC, constants, activation, and live-memory differences |
-| [Baseline 96 layer report](artifacts/device_profiles/baseline_96/DEVICE_LAYER_PROFILE_REPORT.md) | Shapes, slowest operators, memory, and run protocol |
-| [Fast 80 layer report](artifacts/device_profiles/fast_80/DEVICE_LAYER_PROFILE_REPORT.md) | Shapes, slowest operators, memory, and run protocol |
-| [Pruning techniques and experiment plan](optimization/PRUNING_TECHNIQUES_PLAN.md) | Paper-backed taxonomy, ESP32 suitability, experiment order, and acceptance gates |
-| `notebooks/10_device_layer_profiling.ipynb` | Reproduce and inspect one physical-device profile |
-| `notebooks/11_model_version_comparison.ipynb` | Rebuild the complete two-version comparison |
-| [`optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb`](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb) | Executed baseline freeze, pruning-unit inventory, dependency audit, and ESP32 granularity visualizations |
-| [`artifacts/pruning/reference_audit/`](artifacts/pruning/reference_audit/) | Machine-readable Notebook 12 tables, contract, manifest, and five generated figures |
-| [`optimization/pruning/13_unstructured_magnitude_pruning.ipynb`](optimization/pruning/13_unstructured_magnitude_pruning.ipynb) | Executed one-shot control plus Han-inspired sensitivity-adjusted iterative pruning, recovery, INT8 export, selection, and physical profiling |
-| [Notebook 13 experiment report](artifacts/pruning/unstructured_magnitude/UNSTRUCTURED_MAGNITUDE_REPORT.md) | Held-out quality, storage/compute interpretation, physical ESP32-CAM evidence, and decision |
-| [`artifacts/pruning/unstructured_magnitude/`](artifacts/pruning/unstructured_magnitude/) | Reproducible metrics, masks, deployable TFLite models, manifest, and comparison figures |
+| Better classifier | Frozen-test metrics and uncertainty/control comparison |
+| Correct INT8 model | Integer-only audit plus float/QAT-to-TFLite parity |
+| Smaller deployment | Actual FlatBuffer and arena measurements |
+| Less computation | Physically smaller dense graph or supported sparse execution |
+| Faster ESP32 inference | Repeated batch-one measurements on the exact flashed artifact |
+| Better camera system | Capture-to-decision latency, FPS, memory, and labeled camera tests |
 
-### Optimization restart
+## Baseline and resolution optimization
 
-Fast-80 is the frozen pre-pruning reference. Previous QAT and pruning experiments have been
-removed so that granularity, criterion, pruning ratio, recovery schedule, and hardware support
-can be evaluated independently. The new paper-backed protocol is defined in the
-[pruning techniques and experiment plan](optimization/PRUNING_TECHNIQUES_PLAN.md). No sparse
-method will be called an ESP32 optimization until batch-one latency, tensor-arena use, model
-storage, and complete camera-pipeline FPS are measured on the physical board.
+Fast-80 reduces only spatial resolution; topology and channel counts remain unchanged. This
+controlled change demonstrates how spatial dimensions affect MCU compute and activation memory.
 
-### Notebook 13 result — unstructured magnitude pruning
-
-Notebook 13 now separates two experiments. Global one-shot magnitude pruning remains the
-negative control. The primary branch adapts Han et al.'s train-prune-retrain idea to Fast-80:
-it measures single-layer sensitivity, protects fragile layers with adjusted magnitude scores,
-reaches each target over five cumulative rounds, reapplies masks after every optimizer step,
-and performs low-learning-rate recovery. All full-INT8 thresholds and candidate selection use
-validation data only; the held-out test is opened once after selection. The paper-inspired 50%
-candidate (`paper_iterative__s50`) is the highest sparsity satisfying recall >= 0.80 and an F1
-drop no larger than 0.03. Both policies collapse at 75% and 90%, establishing the safe range
-for this small network.
-
-| Perspective | Fast-80 reference | Selected `s50` | Observed change |
+| Metric | Baseline-96 | Fast-80 | Change |
 |---|---:|---:|---:|
-| Kernel sparsity | 0% | 50% | +50 percentage points |
-| Held-out INT8 F1 | 0.725 | 0.722 | -0.003 |
-| Held-out INT8 recall | 0.847 | 0.837 | -0.010 |
-| Held-out INT8 PR-AUC | 0.787 | 0.781 | -0.006 |
+| Input elements | 27,648 | 19,200 | -30.6% |
+| MACs | 5,616,256 | 3,993,536 | **-28.9%** |
+| Instrumented ESP32-CAM Invoke | 640.534 ms | 455.546 ms | **-28.9%** |
+| Measured TFLM arena | 91,596 B | 69,068 B | **-24.6%** |
+| Fused live activation peak | 55,296 B | 38,400 B | **-30.6%** |
+| INT8 F1 | 0.7234 | 0.7201 | -0.0033 |
+| INT8 PR-AUC | 0.8034 | 0.7873 | -0.0162 |
+
+![Compute, latency, memory, and accuracy comparison](artifacts/device_profiles/whole_model_comparison.png)
+
+Fast-80 saves work because convolution executes at fewer spatial positions. Equal parameter and
+FlatBuffer sizes are expected because resolution does not change the number of weights. Its main
+quality cost is specificity: the validation-selected operating point favors recall and produces
+more false-positive person decisions.
+
+## Quantization
+
+The full per-technique report—including algorithms, calibration rules, failure modes, conversion
+diagnostics, and evidence paths—is
+[QUANTIZATION_EXPERIMENT_REPORT.md](optimization/quantization/QUANTIZATION_EXPERIMENT_REPORT.md).
+
+### Full-INT8 affine quantization
+
+For real tensor `x`, quantized integer `q`, scale `s`, and zero point `z`,
+
+$$
+q=\operatorname{clip}\left(\operatorname{round}(x/s)+z,-128,127\right),
+\qquad \hat{x}=s(q-z).
+$$
+
+Every deployment export requires:
+
+- INT8 input and output tensors;
+- no float fallback tensors;
+- only TFLite Micro/ESP-NN-compatible operators;
+- a frozen representative set for calibration;
+- validation-selected thresholds after conversion;
+- probability and metric parity against the corresponding reference graph.
+
+The normal deployed operator set is `ADD`, `CONV_2D`, `DEPTHWISE_CONV_2D`,
+`FULLY_CONNECTED`, `LOGISTIC`, `MEAN`, `MUL`, and `PAD`.
+
+### Post-training quantization
+
+PTQ estimates activation ranges from representative float inputs after training. Weights are
+quantized, BatchNorm is folded, and the original model does not learn under rounding noise.
+The integer arithmetic and calibration contract follows the deployment formulation in
+[Jacob et al., *Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference*](https://arxiv.org/abs/1712.05877).
+In this project PTQ is implemented as full integer conversion with 500 representative examples,
+INT8 boundary tensors, and an explicit no-float-fallback audit.
+
+| PTQ experiment | Float PR-AUC | INT8 PR-AUC | Float F1 | INT8 F1 | Probability MAE | FlatBuffer |
+|---|---:|---:|---:|---:|---:|---:|
+| Student-120 hard control | 0.8406 | 0.8353 | 0.7512 | 0.7544 | 0.0363 | 304,296 B |
+| FitNets candidate | 0.7985 | 0.7992 | 0.7312 | 0.7311 | **0.0141** | 304,944 B |
+| Notebook 03 champion, latest export | 0.8651 | **0.8568** | 0.7772 | 0.7623 | — | **303,304 B** |
+
+PTQ is the current reliable Student-120 integer route. It causes a modest ranking/calibration
+shift but preserves useful class separation and produces an ESP-compatible dense graph.
+
+### Quantization-aware training
+
+QAT replaces real quantization with a differentiable fake-quantizer during training:
+
+$$
+\operatorname{FQ}(x)=s\left[
+\operatorname{clip}\left(\operatorname{round}(x/s)+z,q_{min},q_{max}\right)-z
+\right].
+$$
+
+The forward pass sees rounding and clipping; gradients use a straight-through approximation in
+the representable interval. This is the learned-quantization path described by
+[Jacob et al.](https://arxiv.org/abs/1712.05877): training adapts weights to the same clipping and
+rounding behavior expected from integer inference. In principle, QAT should recover quality that
+PTQ loses.
+
+The current W8A8 checkpoints train successfully:
+
+| Keras fake-quantized checkpoint | F1 | PR-AUC | Specificity |
+|---|---:|---:|---:|
+| Hard QAT | 0.7763 | **0.8661** | 0.7792 |
+| Fixed-teacher QAT+KD | 0.7771 | 0.8656 | 0.7566 |
+| Full QKD | **0.7783** | 0.8657 | 0.7488 |
+
+However, all QAT-derived TFLite exports collapse to approximately `0.522-0.526` PR-AUC.
+Keras-to-TFLite MAE is `0.364-0.419`, far above the `0.03` limit. The leading diagnosis is a
+Conv-BatchNorm deployment mismatch: fake quantization observes the pre-BN convolution, while
+TFLite folds BN into the deployed convolution.
+
+![QAT/QKD conversion and efficiency audit](artifacts/distillation/qkd_int8_student_120/figures/qkd_quality_efficiency_dashboard.png)
+
+**Status:** QAT training is promising, but no QAT FlatBuffer is eligible for hardware deployment.
+Repair per-layer conversion parity before running another expensive QAT or QKD schedule.
+
+### Quantization-aware knowledge distillation
+
+[QKD](papers/distillation/08_qkd_quantization_aware_kd_2019.pdf) combines teacher supervision
+with fake quantization through self-studying, co-studying, and tutoring phases. For softened
+teacher and student probabilities `q_t` and `q_s`, the student uses
+
+$$
+\mathcal{L}_s=\mathcal{L}_{BCE}(y,p_s)+T^2D_{KL}(q_t\|q_s).
+$$
+
+At `T=2`, full QKD does not improve PR-AUC over hard QAT (`0.8657` versus `0.8661`) and trades
+specificity for recall. The TFLite result is additionally invalid because of the QAT conversion
+failure. See the [QKD outcome report](optimization/distillation/quantization-aware%20distillation/07_QKD_OUTCOME_REPORT.md).
+
+## Pruning
+
+Executed pruning techniques are reported in
+[PRUNING_EXPERIMENT_REPORT.md](optimization/pruning/PRUNING_EXPERIMENT_REPORT.md); unexecuted
+methods and their registered experimental designs remain in
+[PRUNING_TECHNIQUES_PLAN.md](optimization/pruning/PRUNING_TECHNIQUES_PLAN.md).
+
+The pruning program treats a method as a tuple rather than a single label:
+
+```text
+granularity
++ importance criterion
++ pruning-ratio policy
++ pruning/recovery schedule
++ runtime representation and hardware support
+```
+
+This distinction prevents mathematical sparsity from being reported as MCU acceleration.
+
+### Hardware implications by granularity
+
+| Granularity | Dense graph smaller? | Special sparse kernel? | ESP32 priority |
+|---|---:|---:|---:|
+| Fine-grained weights | No | Yes | Control experiment |
+| Pattern | No | Yes | Compiler/kernel research |
+| Vector or M:N | No | Yes | Hardware-specific research |
+| Kernel connections | Usually no | Usually yes | Low-medium |
+| Filters/channels | **Yes** | No after graph rebuild | **Highest** |
+| Layers/blocks | **Yes** | No if shapes remain legal | High |
+
+### Notebook 12 — pruning reference audit
+
+[Notebook 12](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb) freezes
+Fast-80, enumerates legal pruning units, maps MobileNet depthwise-separable dependencies, and
+demonstrates why masked zeros do not change dense ESP-NN work.
+
+For physical channel pruning, one channel identity must be removed consistently:
+
+```text
+pointwise output channel i
+  -> BatchNorm channel i
+  -> next depthwise kernel i
+  -> next pointwise input channel i
+```
+
+### Notebook 13 — unstructured magnitude pruning
+
+The implemented method follows the train-prune-retrain principle from
+[Han et al.](papers/pruning/1506.02626v3.pdf) and compares a global one-shot control with a
+layer-sensitivity-adjusted iterative schedule.
+
+For scalar weight `w`, magnitude pruning applies
+
+$$
+m_i=\mathbf{1}\{|w_i|>\tau\}, \qquad \tilde{w}_i=m_iw_i,
+$$
+
+and permanently reapplies the mask during recovery.
+
+| Metric | Fast-80 | Iterative `s50` | Change |
+|---|---:|---:|---:|
+| Kernel sparsity | 0% | 50% | +50 points |
+| INT8 F1 | 0.725 | 0.722 | -0.003 |
+| INT8 PR-AUC | 0.787 | 0.781 | -0.006 |
 | Raw TFLite bytes | 167,976 | 167,976 | **0%** |
-| Gzip diagnostic bytes | 125,325 | 90,900 | **-27.5%** |
+| Gzip diagnostic | 125,325 | 90,900 | -27.5% |
 | Dense executed MACs | 3,993,536 | 3,993,536 | **0%** |
 | Theoretical nonzero MACs | 3,993,536 | 2,935,819 | -26.5% |
-| Fused live activation peak | 38,400 B | 38,400 B | **0%** |
-| Physical parameters / operators | 111,793 / 26 | 111,793 / 26 | **0% / 0%** |
-| ESP32 Invoke mean, batch 1 | 455.546 ms | 416.805 ms | -8.5% observed in separate captures |
-| ESP32 TFLM arena used | 69,068 B | 69,068 B | **0%** |
-| Candidate camera pipeline | — | 597.0 ms period / 1.68 fps | Includes capture, preprocess, inference, publish, and delay |
+| Fused live activation | 38,400 B | 38,400 B | **0%** |
+| Measured arena | 69,068 B | 69,068 B | **0%** |
 
-![Notebook 13 one-shot versus iterative validation quality](artifacts/pruning/unstructured_magnitude/figures/one_shot_vs_iterative_quality.png)
+![Unstructured pruning efficiency dashboard](artifacts/pruning/unstructured_magnitude/figures/efficiency_dashboard_revised.png)
 
-![Notebook 13 paper-inspired efficiency dashboard](artifacts/pruning/unstructured_magnitude/figures/efficiency_dashboard_revised.png)
+The selected artifact ran at 416.805 ms in a separate ESP32-CAM capture versus the frozen
+Fast-80 profile's 455.546 ms. Because topology, dense MACs, FlatBuffer size, and arena are
+unchanged and the captures were not alternating controlled trials, this is not evidence that
+ESP-NN skipped sparse weights.
 
-![Notebook 13 physical ESP32-CAM comparison](artifacts/pruning/unstructured_magnitude/figures/physical_esp32_comparison.png)
+### Notebook 14 — PatDNN-inspired pattern pruning
 
-The selected model was compiled, flashed, and measured on the ESP32-CAM with ESP-NN 1.3.2 and
-TFLite Micro 1.4.0. The recorded benchmark used workplace-safe flash-off firmware; the current
-deployment has since re-enabled the same GPIO4 person-state feature. The 416.805 ms Invoke is 8.5% below the saved
-Fast-80 capture, but this is descriptive rather than evidence that dense ESP-NN skipped zeros:
-the profiles were recorded in separate sessions, while shapes, dense MACs, model bytes,
-activations, and arena use are unchanged. A causal sparse speed claim requires repeated
-alternating trials and a compatible sparse representation/kernel. Notebook 14 therefore moves
-to **pattern-based pruning**, the next pruning granularity in the documented sequence.
+[Notebook 14](optimization/pruning/14_pattern_based_magnitude_pruning.ipynb) implements the next
+registered granularity using the natural-pattern construction from
+[PatDNN](papers/pruning/2001.00138v4.pdf). Every eligible 3x3 depthwise kernel retains the center
+weight and the three strongest neighbors, so the legal mask space contains
 
-## Notebook pipeline
+$$
+\binom{8}{3}=56
+$$
 
-| Notebook | Task |
+4-entry patterns. The experiment counts these masks in frozen Fast-80, builds the paper's 6-,
+8-, and 12-pattern libraries, and assigns each kernel by the L2 projection
+
+$$
+p^*=\arg\max_{p\in\mathcal P}\sum_{i,j}W_{ij}^{2}p_{ij}.
+$$
+
+The preflight audit finds 10 eligible depthwise layers, 728 spatial kernels, and 6,552 eligible
+weights. All candidates prune exactly 5/9 of this eligible domain, then receive the same masked
+recovery and full-INT8 conversion. Validation chooses the smallest library meeting recall and F1
+gates; the test split is opened only afterward.
+
+This notebook isolates pattern granularity with a magnitude/L2 criterion. It implements PatDNN's
+natural-pattern discovery, library sweep, projection, and masked retraining, but does not claim
+the paper's extended ADMM, connectivity pruning, FKW storage, compiler reordering, or custom
+mobile kernels. Consequently, packed bytes and pattern-aware MACs are theoretical until a
+matching ESP-NN pattern kernel exists. Experiment results are pending notebook execution.
+
+### Registered pruning roadmap
+
+| Notebook | Technique | Purpose |
+|---:|---|---|
+| [14](optimization/pruning/14_pattern_based_magnitude_pruning.ipynb) | PatDNN-inspired pattern magnitude | 4-entry natural patterns, 6/8/12 libraries, packing cost, and unsupported dense-runtime speed |
+| 15 | Vector/block and M:N | Compare grouping and 2:4 at equal nonzero budget |
+| 16 | Kernel-level | Test irregular channel connectivity barrier |
+| 17 | Filter/channel magnitude | First physically narrower dense ESP-NN graph |
+| 18 | Layer/block sensitivity | Evaluate legal depth reduction |
+| 19 | Network Slimming | BN-scale criterion with sparsity regularization |
+| 20 | APoZ and activation energy | Data-dependent channel selection |
+| 21 | First-order Taylor | Loss-sensitive channel selection |
+| 22 | Regression/reconstruction | LASSO and least-squares preservation |
+| 23 | Diagonal second order | Curvature-aware ranking |
+| 24 | Ratio allocation | Uniform, sensitivity, and NetAdapt-style policies |
+| 25 | Recovery schedule | One-shot, iterative, and regularization |
+| 26 | Cross-technique report | Quality/flash/arena/latency/FPS Pareto selection |
+
+The exact paper-backed protocol is in
+[PRUNING_TECHNIQUES_PLAN.md](optimization/pruning/PRUNING_TECHNIQUES_PLAN.md). Notebook 14 is
+implemented and awaiting execution; Notebook 17 is the first stage expected to reduce stock
+dense ESP-NN work.
+
+## Knowledge distillation
+
+The completed series covers response, attention, feature, relation, and quantization-aware KD.
+The full mathematics, paper mapping, uncertainty, figures, and failure analysis are in the
+[complete distillation report](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md).
+
+### Notebook 01 — hard-label Student-120 control
+
+Notebook 01 establishes the causal reference: an ImageNet-initialized MobileNetV1 alpha-0.25
+student trained only with binary cross-entropy. The teacher is audited but supplies no loss.
+
+$$
+\mathcal{L}_{hard}=-y\log p_s-(1-y)\log(1-p_s).
+$$
+
+| Model | F1 | PR-AUC | Specificity | Deployment result |
+|---|---:|---:|---:|---|
+| Teacher-160 float | 0.8464 | 0.9305 | 0.8685 | Training-only teacher |
+| Student-120 float | 0.7512 | 0.8406 | 0.6722 | Valid KD control |
+| Student-120 PTQ INT8 | 0.7544 | 0.8353 | 0.6487 | Runs on both boards |
+
+The exact INT8 student measures 1,117.1 ms on ESP32-CAM and 150.9 ms on ESP32-S3 with an
+internal arena. It establishes useful teacher headroom but is not an ESP32-CAM latency winner.
+[Detailed Notebook 01 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-01).
+
+### Notebook 02 — Hinton/MicroNets response KD
+
+[Hinton response distillation](papers/distillation/01_hinton_distilling_knowledge_2015.pdf)
+matches temperature-softened teacher and student probabilities. The project uses the
+[MicroNets](papers/distillation/09_micronets_tinyml_architectures_2021.pdf) VWW anchor `T=4`,
+`lambda=0.5`:
+
+$$
+q_t=\sigma(z_t/T),\quad q_s=\sigma(z_s/T),
+$$
+
+$$
+\mathcal{L}=(1-\lambda)\mathcal{L}_{hard}
++\lambda T^2D_{KL}(\operatorname{Bern}(q_t)\|\operatorname{Bern}(q_s)).
+$$
+
+| Model | F1 | PR-AUC | Recall | Specificity |
+|---|---:|---:|---:|---:|
+| Hard control | **0.7512** | **0.8406** | 0.8063 | **0.6722** |
+| Response KD float | 0.7428 | 0.8398 | **0.8359** | 0.6006 |
+| Response KD INT8 | 0.7369 | 0.8348 | 0.8236 | 0.6035 |
+
+Response KD increases recall by predicting person more often, but loses F1 and specificity. Its
+cached teacher targets were also not guaranteed to describe the exact augmented student view.
+The candidate is rejected, and this alignment issue is isolated in Notebook 03.
+[Detailed Notebook 02 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-02).
+
+### Notebook 03 — response alignment and causal ablation
+
+Notebook 03 samples one semantic RGB augmentation and derives independent teacher `160x160` and
+student `120x120` views from it. A `lambda=0` arm determines whether improvement comes from the
+corrected data pipeline or from teacher supervision.
+
+| Arm | Teacher loss | F1 | PR-AUC | Specificity | Interpretation |
+|---|---:|---:|---:|---:|---|
+| Legacy hard control | 0 | 0.7514 | 0.8371 | 0.6222 | Historical contract |
+| Same-view `lambda0` | 0 | **0.7772** | **0.8651** | **0.7861** | Project champion |
+| Same-view `T2/lambda0.25` | Bernoulli KL | 0.7710 | 0.8635 | 0.6801 | KD adds no gain |
+
+Same-view `lambda0` gains `+0.0281` PR-AUC over the legacy control, with paired 95% interval
+`[0.0194, 0.0382]`. Adding KD changes PR-AUC by `-0.0016`. The improvement is therefore caused by
+the aligned RGB training contract, not distillation.
+[Detailed Notebook 03 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-03).
+
+![Response alignment and causal ablation](artifacts/distillation/response_kd_alignment_student_120/figures/corrected_response_kd_dashboard.png)
+
+### Notebook 04 — spatial Attention Transfer
+
+[Attention Transfer](papers/distillation/03_attention_transfer_2016.pdf) transfers where the
+teacher responds rather than matching its output probability. Channel-reduced spatial attention
+is
+
+$$
+A(F)=\operatorname{normalize}\left(\sum_c|F_c|^2\right),\qquad
+\mathcal{L}_{AT}=\|A(F_t)-A(F_s)\|_2^2.
+$$
+
+Teacher and student use `conv_pw_11_relu`; the teacher `10x10` map is resized to the student's
+`7x7` map. `beta=4.55377` is calibrated to an initial auxiliary/hard gradient ratio of 0.10.
+
+| Model | F1 | PR-AUC | Recall | Specificity |
+|---|---:|---:|---:|---:|
+| Attention control | **0.7766** | **0.8633** | 0.8043 | **0.7429** |
+| Attention transfer | 0.7746 | 0.8618 | **0.8196** | 0.7144 |
+
+The PR-AUC bootstrap interval crosses zero, while specificity drops 2.85 points. The attention
+branch is correctly absent from the deployment graph, but the candidate fails its quality gate.
+[Detailed Notebook 04 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-04).
+
+![Attention-transfer quality](artifacts/distillation/attention_transfer_student_120/figures/attention_quality_dashboard.png)
+
+### Notebook 05 — FitNets feature hints
+
+[FitNets](papers/distillation/02_fitnets_hints_for_thin_deep_nets_2014.pdf) first trains a
+temporary `1x1` regressor to align intermediate teacher and student features:
+
+$$
+\mathcal{L}_{hint}=\frac{1}{N}\|F_t-r(F_s)\|_2^2.
+$$
+
+The hint stage maps teacher `conv_pw_6_relu` (`10x10x256`) to student `conv_pw_6_relu`
+(`7x7x128`). Stage 2 discards the regressor and trains hard BCE plus response KD at `T=3`.
+
+| Model | F1 | PR-AUC | Specificity | Linear CKA to teacher |
+|---|---:|---:|---:|---:|
+| Random KD control | 0.6689 | 0.6426 | 0.1678 | 0.6172 |
+| FitNets + KD | **0.7312** | **0.7985** | **0.5662** | **0.9177** |
+| Notebook 03 champion | **0.7772** | **0.8651** | **0.7861** | — |
+
+FitNets is a successful mechanism experiment: hint-checkpoint CKA reaches `0.9562`, and PR-AUC
+improves by `+0.1557` over its random-initialized KD control with the entire bootstrap interval
+above zero. It is nevertheless globally inferior to the pretrained Notebook 03 champion. Its
+INT8 conversion is healthy with probability MAE `0.0141`.
+[Detailed Notebook 05 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-05).
+
+![FitNets quality and feature-transfer result](artifacts/distillation/fitnets_student_120/figures/fitnets_quality_dashboard.png)
+
+### Notebook 06 — Similarity-Preserving KD
+
+[Similarity-Preserving KD](papers/distillation/05_similarity_preserving_kd_2019.pdf) transfers
+within-batch representation geometry. Flattened feature matrix `Q` produces a row-normalized Gram
+matrix:
+
+$$
+G=QQ^\top,\qquad \tilde{G}_{i,:}=G_{i,:}/\|G_{i,:}\|_2,
+$$
+
+$$
+\mathcal{L}_{SP}=\frac{1}{B^2}\|\tilde{G}_t-\tilde{G}_s\|_F^2.
+$$
+
+The calibrated `gamma=18.6028` targets an initial relation/hard gradient ratio of 0.10. Response
+KD is excluded so the experiment isolates relation transfer.
+
+| Model | F1 | PR-AUC | Recall | Specificity | Relation MSE |
+|---|---:|---:|---:|---:|---:|
+| SP control | 0.7747 | 0.8620 | 0.8257 | **0.7056** | 0.00322 |
+| Similarity preserving | **0.7769** | **0.8636** | **0.8553** | 0.6663 | **0.00123** |
+
+The mechanism works—relation MSE improves substantially—but the PR-AUC interval crosses zero and
+specificity falls 3.93 points. It also fails to match the Notebook 03 champion. The candidate is
+not promoted.
+[Detailed Notebook 06 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-06).
+
+![Similarity-preserving quality and relation result](artifacts/distillation/similarity_preserving_student_120/figures/spkd_quality_dashboard.png)
+
+### Notebook 07 — Quantization-aware Knowledge Distillation
+
+[QKD](papers/distillation/08_qkd_quantization_aware_kd_2019.pdf) coordinates quantization and KD
+in three phases: eight epochs of self-study, six of co-study, and six of tutoring. During
+co-study, student and teacher use forward and reverse Bernoulli KL objectives; tutoring freezes
+the adapted teacher. Hard QAT and fixed-teacher QAT+KD are equal-budget controls.
+
+| Fake-quantized Keras model | F1 | PR-AUC | Recall | Specificity |
+|---|---:|---:|---:|---:|
+| Hard QAT | 0.7763 | **0.8661** | 0.7798 | **0.7792** |
+| Fixed-teacher QAT+KD | 0.7771 | 0.8656 | 0.7961 | 0.7566 |
+| Full QKD | **0.7783** | 0.8657 | **0.8033** | 0.7488 |
+
+QKD does not improve ranking over hard QAT. More importantly, every QAT-derived TFLite export
+collapses to approximately `0.522-0.526` PR-AUC with probability MAE `0.364-0.419`. The leading
+cause is a Conv-BatchNorm fake-quantization versus TFLite-folding mismatch. PTQ remains usable at
+PR-AUC `0.8568`; QAT/QKD artifacts are blocked from deployment.
+[Detailed Notebook 07 analysis](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#kd-notebook-07).
+
+![QKD conversion and quality result](artifacts/distillation/qkd_int8_student_120/figures/qkd_quality_efficiency_dashboard.png)
+
+### Cross-technique decision
+
+| Technique | Mechanism validated? | Beats matched control? | Beats project champion? | Deployable result? |
+|---|---:|---:|---:|---:|
+| Response KD | Yes | No | No | Rejected |
+| Attention Transfer | Yes | No | No | Rejected |
+| FitNets | **Yes** | **Yes** | No | Valid INT8, not promoted |
+| Similarity-Preserving KD | **Yes** | Inconclusive | No | Not promoted |
+| QKD | Training yes | No versus hard QAT | No | **TFLite invalid** |
+
+The strongest reliable Student-120 result is the hard-label `same_view_lambda0` model. The
+decisive improvement came from aligned RGB augmentation, not teacher supervision. FitNets and
+SPKD prove that representation transfer occurred, but mechanism success did not translate into
+the best classifier.
+
+## Physical deployment
+
+### Board comparison
+
+| Capability | ESP32-CAM | ESP32-S3 |
+|---|---:|---:|
+| CPU | Dual LX6, 240 MHz | Dual LX7, 240 MHz + 128-bit vectors |
+| Flash | 4 MiB, 40 MHz | 16 MiB, 80 MHz |
+| Mapped PSRAM | approximately 4 MiB at 40 MHz | 8 MiB octal at 80 MHz |
+| Camera | OV3660 validated | OV3660 validated |
+| Maximum sensor capture | 2048x1536 | 2048x1536 JPEG verified |
+| Fast-80 Invoke | 455.546 ms instrumented | **67.105 ms internal arena** |
+| Fast-80 arena used | 69,068 B | 83,420 B |
+| Complete camera dashboard | Working | Not yet ported |
+
+The same Fast-80 artifact is 6.78x faster on the S3 internal-arena profiler than the saved
+ESP32-CAM instrumented profile. This is a model-only comparison, not a complete-camera speedup.
+
+### Student-120 deployment cost
+
+| Metric | ESP32-CAM | ESP32-S3 internal | ESP32-S3 PSRAM |
+|---|---:|---:|---:|
+| Invoke mean | 1,117.123 ms | **150.906 ms** | 176.005 ms |
+| Model-only rate | approximately 0.90/s | 6.63/s | 5.68/s |
+| Measured arena | 142,444 B | 159,212 B | 159,212 B |
+
+Student-120 is accurate enough to be interesting and practical on the S3, but it is not an
+ESP32-CAM latency Pareto winner. The final S3 application still needs camera preprocessing,
+Wi-Fi, dashboard, memory-fragmentation, and end-to-end FPS measurements.
+
+### Firmware and profiling
+
+- [ESP32-CAM firmware guide](firmware/esp32_cam_vww/README.md)
+- [ESP32-CAM hardware capacity](firmware/esp32_cam_vww/HARDWARE_CAPACITY_REPORT.md)
+- [ESP32-S3 capacity report](artifacts/device_profiles/esp32_s3_capacity/DEVICE_CAPACITY_REPORT.md)
+- [ESP32-CAM versus ESP32-S3](firmware/ESP32_CAM_VS_ESP32_S3_HARDWARE_REPORT.md)
+- [Fast-80 per-operator profile](artifacts/device_profiles/fast_80/DEVICE_LAYER_PROFILE_REPORT.md)
+- [Student-120 per-operator profile](artifacts/device_profiles/student_120_hard_control/DEVICE_LAYER_PROFILE_REPORT.md)
+
+## Conclusions and consequences
+
+1. **Resolution is a real hardware lever.** Moving 96 to 80 pixels removes approximately 29% of
+   MACs and measured instrumented latency because the dense graph executes less spatial work.
+2. **PTQ is currently reliable; QAT export is not.** Continue using PTQ for pruning deployments
+   until the Conv-BN fake-quant/TFLite mismatch is repaired.
+3. **Unstructured zeros are not an ESP-NN optimization.** They preserve quality and compress well
+   offline, but they do not change dense shapes, MACs, or arena requirements.
+4. **Physical channel or block removal is the main MCU pruning route.** It can reuse existing
+   dense INT8 kernels while reducing real tensor dimensions.
+5. **KD did not produce the champion.** Correct shared-view preprocessing delivered the largest
+   Student-120 improvement; teacher-loss methods did not exceed it.
+6. **Specificity cannot be hidden by recall.** Several experiments increased recall by predicting
+   person too often—the same failure mode observed on real camera backgrounds.
+7. **ESP32-S3 changes the feasible architecture set.** Vectorized ESP-NN makes Student-120
+   model-only inference practical, but the older ESP32-CAM still benefits strongly from Fast-80.
+8. **Every optimization needs an end-to-end gate.** Final promotion requires frozen-test quality,
+   integer parity, exact model bytes, measured arena, Invoke latency, preprocessing latency, and
+   complete camera FPS.
+
+## Repository map
+
+```text
+notebooks/                         baseline data -> train -> evaluate -> export -> profile
+optimization/high_resolution/      160x160 teacher experiments
+optimization/distillation/         KD notebooks, plans, debugging, consolidated report
+optimization/pruning/              pruning audit, techniques, and roadmap
+papers/distillation/                local KD/TinyML paper library
+papers/pruning/                     local pruning paper library
+artifacts/                           models, metrics, figures, hashes, device captures
+firmware/esp32_cam_vww/             validated ESP32-CAM application
+firmware/esp32_s3_vww/              ESP32-S3 model target
+scripts/                             training, export, flashing, and profiling helpers
+configs/                             immutable experiment configurations
+```
+
+### Principal notebooks
+
+| Phase | Notebooks |
 |---|---|
-| `00_project_setup.ipynb` | Environment and experiment contract |
-| `01_data_raw.ipynb` | Download raw COCO annotations |
-| `02_eda.ipynb` | Exploratory data analysis |
-| `03_data_extraction.ipynb` | Create VWW labels and download selected images |
-| `04_data_preprocessing.ipynb` | Integrity checks and input pipeline |
-| `05_training.ipynb` | Train the compact model |
-| `06_evaluation.ipynb` | Evaluate threshold, calibration, and error slices |
-| `07_model_profiling.ipynb` | Profile layers, sparsity, MACs, and peak memory before optimization |
-| `08_model_export.ipynb` | Export and validate full-INT8 TFLite |
-| `09_report_and_deployment.ipynb` | Model card and deployment gates |
-| `10_device_layer_profiling.ipynb` | Analyze every fused operator using real ESP32-CAM timings |
-| `11_model_version_comparison.ipynb` | Compare the 96×96 and 80×80 models across device, compute, memory, and accuracy metrics |
-| `optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb` | Freeze Fast-80 and audit legal pruning units, dependencies, and hardware-realizable granularity |
-| `optimization/pruning/13_unstructured_magnitude_pruning.ipynb` | Compare one-shot and Han-inspired iterative unstructured magnitude pruning, export INT8, deploy the selected model, and distinguish sparse theory from dense ESP-NN execution |
+| Baseline | `00_project_setup.ipynb` through `09_report_and_deployment.ipynb` |
+| Hardware | `10_device_layer_profiling.ipynb`, `11_model_version_comparison.ipynb` |
+| Pruning | [12 audit](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb), [13 unstructured magnitude](optimization/pruning/13_unstructured_magnitude_pruning.ipynb), [14 pattern-based magnitude](optimization/pruning/14_pattern_based_magnitude_pruning.ipynb) |
+| Distillation | [01–07 technique sequence](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#artifact-index) |
+| High resolution | [Teacher-160](optimization/high_resolution/01_high_resolution_teacher_160.ipynb), targeted/full COCO experiments |
 
-## Run the pipeline
+## Reproduction
+
+### Python environment
 
 ```bash
 python3 -m venv .venv
@@ -308,11 +624,16 @@ python -m pip install -e '.[dev]'
 jupyter lab
 ```
 
-Run the notebooks in numeric order. Experiment settings are in `configs/base.yaml`.
+Run notebooks from a fresh kernel. Reuse checkpoints only when the notebook's runtime contract,
+manifest hash, model hash, configuration hash, and paper hash match.
 
-## Build and flash
+### Train the frozen Fast-80 reference
 
-The current firmware uses the AI-Thinker ESP32-CAM pin map and has been tested on the connected OV3660 module with mapped PSRAM.
+```bash
+python scripts/train_fast_vww.py --config configs/fast_80.yaml
+```
+
+### Build and flash ESP32-CAM
 
 ```bash
 source scripts/activate_esp_idf.sh
@@ -321,12 +642,7 @@ python scripts/verify_firmware_assets.py
 ./scripts/flash_esp32_firmware.sh /dev/cu.YOUR_SERIAL_PORT --monitor
 ```
 
-See [the firmware guide](firmware/esp32_cam_vww/README.md) for wiring and boot-mode instructions.
-
-## Profile models on the physical board
-
-The profiling firmware measures each fused TFLite Micro operator across 20
-batch-size-1 invocations after two warm-up invocations. To reproduce a run:
+### Profile an exact model artifact
 
 ```bash
 source scripts/activate_esp_idf.sh
@@ -335,18 +651,18 @@ scripts/profile_esp32_model.sh \
   80 fast_80 /dev/cu.YOUR_SERIAL_PORT
 ```
 
-Raw serial logs, enriched operator CSVs, memory summaries, diagrams, and reports are
-written to `artifacts/device_profiles/`. Notebook 10 analyzes latency, activation I/O,
-live-tensor RAM, constants, tensor-arena use, internal SRAM, and PSRAM for one deployed
-model. Notebook 11 compares all of those perspectives between the baseline and optimized
-versions.
+The profiler uses batch one, warm-up invocations, repeated measurements, exact artifact hashes,
+per-operator timing, and memory accounting. Desktop timing must not be substituted for ESP32
+latency.
 
-Current measured outputs:
+## Limitations
 
-- [80×80 layer report](artifacts/device_profiles/fast_80/DEVICE_LAYER_PROFILE_REPORT.md)
-- [96×96 layer report](artifacts/device_profiles/baseline_96/DEVICE_LAYER_PROFILE_REPORT.md)
-- [96×96 versus 80×80 comparison](artifacts/device_profiles/MODEL_VERSION_COMPARISON.md)
-
-## Important limitation
-
-This remains a COCO-domain classifier with device-side domain correction, not a claim of production accuracy. The supplied recording was used to tune preprocessing and the connected board verified that a static high-scoring background no longer activates wake. Person entry/still/exit behavior should still be checked across the intended lighting and viewpoints.
+- COCO-domain metrics do not establish production accuracy on OV3660 camera frames.
+- The camera uses device-side color/brightness correction and temporal policy; these must remain
+  consistent with any deployment calibration.
+- Flash illumination changes the input distribution and must stay disabled during controlled
+  profiling unless illumination itself is the experiment.
+- Current QAT/QKD TFLite files are rejected despite being integer-only.
+- Unstructured pruning has no supported sparse ESP-NN execution path in this project.
+- ESP32-S3 model-only results are not yet equivalent to a full camera/Wi-Fi/dashboard benchmark.
+- Thresholds are model- and domain-specific; `0.5` is not assumed to be correct.
