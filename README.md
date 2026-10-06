@@ -40,7 +40,7 @@ quantized, smaller on disk, or more accurate on a desktop.
 | Strongest Student-120 float model | Notebook 03 `same_view_lambda0` | F1 0.7772, PR-AUC 0.8651 |
 | Reliable Student-120 integer path | PTQ INT8 | F1 0.7623, PR-AUC 0.8568 in latest contract |
 | QAT/QKD export | Integer-only but numerically invalid | Blocked pending Conv-BN/QAT repair |
-| Current pruning experiment | Notebook 14 PatDNN-inspired pattern pruning | Implemented; awaiting execution |
+| Current pruning experiment | Notebook 14 end-to-end PatDNN on Student-120 | Paper-complete notebook implemented; training/device execution pending |
 
 The current pruning order is defined by the
 [pruning experiment plan](optimization/pruning/PRUNING_TECHNIQUES_PLAN.md). The completed
@@ -126,12 +126,18 @@ diagnostics, and evidence paths—is
 
 ### Full-INT8 affine quantization
 
-For real tensor `x`, quantized integer `q`, scale `s`, and zero point `z`,
+Affine INT8 quantization maps a real value into the signed integer range and reconstructs an
+approximation of that value as follows. The scale is strictly positive, and the signed INT8
+bounds are minus 128 and 127.
 
-$$
-q=\operatorname{clip}\left(\operatorname{round}(x/s)+z,-128,127\right),
-\qquad \hat{x}=s(q-z).
-$$
+```math
+q = \operatorname{clip}\!\left(
+    \operatorname{round}\!\left(\frac{x}{s}\right)+z,
+    q_{\min},q_{\max}
+\right),
+\qquad
+\widehat{x}=s(q-z).
+```
 
 Every deployment export requires:
 
@@ -165,13 +171,28 @@ shift but preserves useful class separation and produces an ESP-compatible dense
 
 ### Quantization-aware training
 
-QAT replaces real quantization with a differentiable fake-quantizer during training:
+QAT replaces real quantization with a fake-quantize/dequantize operation during training:
 
-$$
-\operatorname{FQ}(x)=s\left[
-\operatorname{clip}\left(\operatorname{round}(x/s)+z,q_{min},q_{max}\right)-z
+```math
+\operatorname{FQ}(x)
+=s\left[
+\operatorname{clip}\!\left(
+\operatorname{round}\!\left(\frac{x}{s}\right)+z,
+q_{\min},q_{\max}
+\right)-z
 \right].
-$$
+```
+
+The non-differentiable rounding operation is trained with a straight-through estimator (STE):
+
+```math
+\frac{\partial\operatorname{FQ}(x)}{\partial x}
+\approx
+\begin{cases}
+1, & x\in\left[s(q_{\min}-z),\,s(q_{\max}-z)\right],\\
+0, & \text{otherwise}.
+\end{cases}
+```
 
 The forward pass sees rounding and clipping; gradients use a straight-through approximation in
 the representable interval. This is the learned-quantization path described by
@@ -200,12 +221,27 @@ Repair per-layer conversion parity before running another expensive QAT or QKD s
 ### Quantization-aware knowledge distillation
 
 [QKD](papers/distillation/08_qkd_quantization_aware_kd_2019.pdf) combines teacher supervision
-with fake quantization through self-studying, co-studying, and tutoring phases. For softened
-teacher and student probabilities `q_t` and `q_s`, the student uses
+with fake quantization through self-studying, co-studying, and tutoring phases. For binary
+teacher and student logits, a temperature, and a KD mixing weight, define
 
-$$
-\mathcal{L}_s=\mathcal{L}_{BCE}(y,p_s)+T^2D_{KL}(q_t\|q_s).
-$$
+```math
+q_t^{(T)}=\sigma\!\left(\frac{z_t}{T}\right),
+\qquad
+q_s^{(T)}=\sigma\!\left(\frac{z_s}{T}\right).
+```
+
+The binary response-distillation objective is
+
+```math
+\mathcal{L}_{\mathrm{student}}
+=(1-\lambda)\,\mathcal{L}_{\mathrm{BCE}}\!\left(y,\sigma(z_s)\right)
++\lambda T^2
+D_{\mathrm{KL}}\!\left(
+\operatorname{Bern}\!\left(q_t^{(T)}\right)
+\,\middle\|\,
+\operatorname{Bern}\!\left(q_s^{(T)}\right)
+\right).
+```
 
 At `T=2`, full QKD does not improve PR-AUC over hard QAT (`0.8657` versus `0.8661`) and trades
 specificity for recall. The TFLite result is additionally invalid because of the QAT conversion
@@ -264,9 +300,11 @@ layer-sensitivity-adjusted iterative schedule.
 
 For scalar weight `w`, magnitude pruning applies
 
-$$
-m_i=\mathbf{1}\{|w_i|>\tau\}, \qquad \tilde{w}_i=m_iw_i,
-$$
+```math
+m_i=\mathbf{1}\!\left\{|w_i|\ge\tau\right\},
+\qquad
+\widetilde{w}_i=m_iw_i.
+```
 
 and permanently reapplies the mask during recovery.
 
@@ -289,40 +327,93 @@ Fast-80 profile's 455.546 ms. Because topology, dense MACs, FlatBuffer size, and
 unchanged and the captures were not alternating controlled trials, this is not evidence that
 ESP-NN skipped sparse weights.
 
-### Notebook 14 — PatDNN-inspired pattern pruning
+### Notebook 14 — end-to-end PatDNN on Student-120
 
-[Notebook 14](optimization/pruning/14_pattern_based_magnitude_pruning.ipynb) implements the next
-registered granularity using the natural-pattern construction from
-[PatDNN](papers/pruning/2001.00138v4.pdf). Every eligible 3x3 depthwise kernel retains the center
-weight and the three strongest neighbors, so the legal mask space contains
+[Notebook 14](optimization/pruning/pattern_based/14_patdnn_end_to_end_pattern_pruning.ipynb) and
+its [paper-complete implementation plan](optimization/pruning/pattern_based/PATDNN_IMPLEMENTATION_PLAN.md)
+form a dedicated reproduction of [PatDNN](papers/pruning/2001.00138v4.pdf) for the 120x120
+Notebook 03 champion (`same_view_lambda0`). Every eligible 3x3 standard or depthwise convolution
+kernel retains the center weight and three neighbors, so the legal mask space contains
 
-$$
-\binom{8}{3}=56
-$$
+```math
+\left|\mathcal{P}\right|=\binom{8}{3}=56.
+```
 
-4-entry patterns. The experiment counts these masks in frozen Fast-80, builds the paper's 6-,
-8-, and 12-pattern libraries, and assigns each kernel by the L2 projection
+4-entry patterns. The experiment counts these masks in the frozen Student-120 weights, builds the
+paper's 6-, 8-, and 12-pattern libraries, and updates each assignment through the L2 projection
 
-$$
-p^*=\arg\max_{p\in\mathcal P}\sum_{i,j}W_{ij}^{2}p_{ij}.
-$$
+```math
+p^{\star}
+=\underset{p\in\mathcal{P}}{\arg\min}\;
+\left\|R-R\odot p\right\|_F^2
+=\underset{p\in\mathcal{P}}{\arg\max}\;
+\sum_{i,j}R_{ij}^{2}p_{ij},
+\qquad
+Z=R\odot p^{\star}.
+```
 
-The preflight audit finds 10 eligible depthwise layers, 728 spatial kernels, and 6,552 eligible
-weights. All candidates prune exactly 5/9 of this eligible domain, then receive the same masked
-recovery and full-INT8 conversion. Validation chooses the smallest library meeting recall and F1
-gates; the test split is opened only afterward.
+Unlike the earlier pattern-only draft, the task weights are optimized with both constraints from
+the paper. The constrained problem below applies to every eligible layer, using one feasible set
+for pattern masks and another for kernel connectivity.
 
-This notebook isolates pattern granularity with a magnitude/L2 criterion. It implements PatDNN's
-natural-pattern discovery, library sweep, projection, and masked retraining, but does not claim
-the paper's extended ADMM, connectivity pruning, FKW storage, compiler reordering, or custom
-mobile kernels. Consequently, packed bytes and pattern-aware MACs are theoretical until a
-matching ESP-NN pattern kernel exists. Experiment results are pending notebook execution.
+```math
+\begin{aligned}
+\underset{W}{\operatorname{minimize}}\quad
+&\mathcal{L}_{\mathrm{VWW}}(W)\\
+\text{subject to}\quad
+&W_l=Z_l,\quad Z_l\in\mathcal{S}_l^{p},\\
+&W_l=Y_l,\quad Y_l\in\mathcal{S}_l^{c}.
+\end{aligned}
+```
+
+The complete scaled augmented Lagrangian, including the constant dual-norm terms, is
+
+```math
+\begin{aligned}
+\mathcal{L}_{\rho}(W,Z,Y,U,V)
+=\;&\mathcal{L}_{\mathrm{VWW}}(W)\\
+&+\sum_l\frac{\rho_p}{2}
+\left(
+\left\|W_l-Z_l+U_l\right\|_F^2-\left\|U_l\right\|_F^2
+\right)\\
+&+\sum_l\frac{\rho_c}{2}
+\left(
+\left\|W_l-Y_l+V_l\right\|_F^2-\left\|V_l\right\|_F^2
+\right).
+\end{aligned}
+```
+
+After each weight update, the two projections and scaled-dual updates are
+
+```math
+\begin{aligned}
+Z_l^{k+1}&=\Pi_{\mathcal{S}_l^{p}}
+\left(W_l^{k+1}+U_l^k\right),
+&U_l^{k+1}&=U_l^k+W_l^{k+1}-Z_l^{k+1},\\
+Y_l^{k+1}&=\Pi_{\mathcal{S}_l^{c}}
+\left(W_l^{k+1}+V_l^k\right),
+&V_l^{k+1}&=V_l^k+W_l^{k+1}-Y_l^{k+1}.
+\end{aligned}
+```
+
+The pattern auxiliary/dual pair enforces kernel patterns; the connectivity auxiliary/dual pair
+enforces whole-kernel connectivity. Both Euclidean projections, both scaled-dual updates, final
+mask intersection, zero-regrowth recovery, and full-INT8 validation are implemented directly in
+TensorFlow/NumPy.
+
+The execution half now follows PatDNN Sections 5.1–5.5: a validated Layerwise Representation,
+filter/kernel reorder, all five FKW arrays (`offset`, `reorder`, `index`, `stride`, `weight`),
+byte-exact encode/decode checks, kernel- and filter-level load-reuse analysis, branch-free scalar
+C++ generation, and a memory-constrained genetic auto-tuning queue. The notebook preserves a
+dense masked TFLite model only as a quality control; it cannot be used to claim sparse speedup.
+Physical ESP32-CAM and ESP32-S3 runtime ablations remain mandatory before calling the result an
+end-to-end accelerated deployment.
 
 ### Registered pruning roadmap
 
 | Notebook | Technique | Purpose |
 |---:|---|---|
-| [14](optimization/pruning/14_pattern_based_magnitude_pruning.ipynb) | PatDNN-inspired pattern magnitude | 4-entry natural patterns, 6/8/12 libraries, packing cost, and unsupported dense-runtime speed |
+| [14](optimization/pruning/pattern_based/14_patdnn_end_to_end_pattern_pruning.ipynb) | End-to-end PatDNN on Student-120 | Joint pattern/connectivity ADMM, recovery, INT8, LR, FKR, FKW, LRE, codegen, auto-tuning, and device evidence gates |
 | 15 | Vector/block and M:N | Compare grouping and 2:4 at equal nonzero budget |
 | 16 | Kernel-level | Test irregular channel connectivity barrier |
 | 17 | Filter/channel magnitude | First physically narrower dense ESP-NN graph |
@@ -352,9 +443,11 @@ The full mathematics, paper mapping, uncertainty, figures, and failure analysis 
 Notebook 01 establishes the causal reference: an ImageNet-initialized MobileNetV1 alpha-0.25
 student trained only with binary cross-entropy. The teacher is audited but supplies no loss.
 
-$$
-\mathcal{L}_{hard}=-y\log p_s-(1-y)\log(1-p_s).
-$$
+```math
+\mathcal{L}_{\mathrm{hard}}
+=-y\log(p_s+\varepsilon)
+-(1-y)\log(1-p_s+\varepsilon).
+```
 
 | Model | F1 | PR-AUC | Specificity | Deployment result |
 |---|---:|---:|---:|---|
@@ -373,14 +466,32 @@ matches temperature-softened teacher and student probabilities. The project uses
 [MicroNets](papers/distillation/09_micronets_tinyml_architectures_2021.pdf) VWW anchor `T=4`,
 `lambda=0.5`:
 
-$$
-q_t=\sigma(z_t/T),\quad q_s=\sigma(z_s/T),
-$$
+```math
+q_t^{(T)}=\sigma\!\left(\frac{z_t}{T}\right),
+\qquad
+q_s^{(T)}=\sigma\!\left(\frac{z_s}{T}\right).
+```
 
-$$
-\mathcal{L}=(1-\lambda)\mathcal{L}_{hard}
-+\lambda T^2D_{KL}(\operatorname{Bern}(q_t)\|\operatorname{Bern}(q_s)).
-$$
+```math
+\begin{aligned}
+\mathcal{L}
+=\;&(1-\lambda)\mathcal{L}_{\mathrm{hard}}\\
+&+\lambda T^2
+D_{\mathrm{KL}}\!\left(
+\operatorname{Bern}\!\left(q_t^{(T)}\right)
+\,\middle\|\,
+\operatorname{Bern}\!\left(q_s^{(T)}\right)
+\right),
+\end{aligned}
+```
+
+where the Bernoulli KL term is explicitly
+
+```math
+D_{\mathrm{KL}}\!\left(\operatorname{Bern}(a)\middle\|\operatorname{Bern}(b)\right)
+=a\log\!\left(\frac{a}{b}\right)
++(1-a)\log\!\left(\frac{1-a}{1-b}\right).
+```
 
 | Model | F1 | PR-AUC | Recall | Specificity |
 |---|---:|---:|---:|---:|
@@ -418,10 +529,15 @@ the aligned RGB training contract, not distillation.
 teacher responds rather than matching its output probability. Channel-reduced spatial attention
 is
 
-$$
-A(F)=\operatorname{normalize}\left(\sum_c|F_c|^2\right),\qquad
-\mathcal{L}_{AT}=\|A(F_t)-A(F_s)\|_2^2.
-$$
+```math
+A(F)_{h,w}
+=\frac{\displaystyle\sum_c\left|F_{h,w,c}\right|^2}
+{\displaystyle
+\sqrt{\sum_{h',w'}\left(\sum_c|F_{h',w',c}|^2\right)^2}+\varepsilon},
+\qquad
+\mathcal{L}_{\mathrm{AT}}
+=\left\|A(F_t)-A(F_s)\right\|_2^2.
+```
 
 Teacher and student use `conv_pw_11_relu`; the teacher `10x10` map is resized to the student's
 `7x7` map. `beta=4.55377` is calibrated to an initial auxiliary/hard gradient ratio of 0.10.
@@ -442,9 +558,11 @@ branch is correctly absent from the deployment graph, but the candidate fails it
 [FitNets](papers/distillation/02_fitnets_hints_for_thin_deep_nets_2014.pdf) first trains a
 temporary `1x1` regressor to align intermediate teacher and student features:
 
-$$
-\mathcal{L}_{hint}=\frac{1}{N}\|F_t-r(F_s)\|_2^2.
-$$
+```math
+\mathcal{L}_{\mathrm{hint}}
+=\frac{1}{N}
+\left\|F_t-r_{\theta}(F_s)\right\|_2^2.
+```
 
 The hint stage maps teacher `conv_pw_6_relu` (`10x10x256`) to student `conv_pw_6_relu`
 (`7x7x128`). Stage 2 discards the regressor and trains hard BCE plus response KD at `T=3`.
@@ -469,13 +587,18 @@ INT8 conversion is healthy with probability MAE `0.0141`.
 within-batch representation geometry. Flattened feature matrix `Q` produces a row-normalized Gram
 matrix:
 
-$$
-G=QQ^\top,\qquad \tilde{G}_{i,:}=G_{i,:}/\|G_{i,:}\|_2,
-$$
+```math
+G=QQ^{\mathsf T},
+\qquad
+\widetilde{G}_{i,:}
+=\frac{G_{i,:}}{\left\|G_{i,:}\right\|_2+\varepsilon}.
+```
 
-$$
-\mathcal{L}_{SP}=\frac{1}{B^2}\|\tilde{G}_t-\tilde{G}_s\|_F^2.
-$$
+```math
+\mathcal{L}_{\mathrm{SP}}
+=\frac{1}{B^2}
+\left\|\widetilde{G}_t-\widetilde{G}_s\right\|_F^2.
+```
 
 The calibrated `gamma=18.6028` targets an initial relation/hard gradient ratio of 0.10. Response
 KD is excluded so the experiment isolates relation transfer.
@@ -609,7 +732,7 @@ configs/                             immutable experiment configurations
 |---|---|
 | Baseline | `00_project_setup.ipynb` through `09_report_and_deployment.ipynb` |
 | Hardware | `10_device_layer_profiling.ipynb`, `11_model_version_comparison.ipynb` |
-| Pruning | [12 audit](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb), [13 unstructured magnitude](optimization/pruning/13_unstructured_magnitude_pruning.ipynb), [14 pattern-based magnitude](optimization/pruning/14_pattern_based_magnitude_pruning.ipynb) |
+| Pruning | [12 audit](optimization/pruning/12_pruning_reference_and_granularity_audit.ipynb), [13 unstructured magnitude](optimization/pruning/13_unstructured_magnitude_pruning.ipynb), [14 end-to-end PatDNN](optimization/pruning/pattern_based/14_patdnn_end_to_end_pattern_pruning.ipynb) |
 | Distillation | [01–07 technique sequence](optimization/distillation/DISTILLATION_EXPERIMENT_REPORT.md#artifact-index) |
 | High resolution | [Teacher-160](optimization/high_resolution/01_high_resolution_teacher_160.ipynb), targeted/full COCO experiments |
 
